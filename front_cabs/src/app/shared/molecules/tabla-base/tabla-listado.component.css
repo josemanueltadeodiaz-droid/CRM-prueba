@@ -1,0 +1,112 @@
+:host {
+  display: block;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.contenedor-tabla {
+  width: 100%;
+  overflow-x: auto; /* Mantiene scroll horizontal si es necesario */
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 10px; /* Para que la sombra se vea redondeada */
+}
+
+.estado-tabla {
+  text-align: center;
+  padding: 2rem;
+  color: var(--texto-body-secundario, #666666);
+  background: var(--color-blanco, #ffffff);
+  border-radius: 10px;
+}
+
+.tabla-listado {
+  width: 100%; /* Ocupa el 100% del contenedor */
+  border-collapse: collapse;
+  table-layout: auto; /* IMPORTANTE: permite que las columnas se ajusten al contenido */
+}
+
+.encabezado-tabla {
+  background: var(--fondo-principal, #FAFAFA);
+}
+
+.cuerpo-tabla {
+  background-color: var(--color-blanco, #ffffff);
+}
+
+.celda-encabezado {
+  padding: 16px;
+  border-bottom: 2px solid var(--color-borde, #D9D9D9);
+  font-size: 14px;
+  color: var(--texto-titulo, #333333);
+  font-weight: 600;
+  white-space: nowrap; /* Evita que el texto del encabezado se rompa */
+}
+
+.celda-dato {
+  padding: 16px;
+  border-bottom: 1px solid var(--color-borde, #D9D9D9);
+  font-size: 14px;
+  color: var(--texto-body, #333333);
+  font-weight: 500;
+  word-wrap: break-word; /* Permite que el texto se rompa */
+  overflow-wrap: break-word; /* Compatibilidad adicional */
+  max-width: 300px; /* Opcional: límite máximo por celda */
+}
+
+.celda-sin-datos {
+  text-align: center;
+  padding: 2rem;
+  color: var(--texto-body-secundario, #666666);
+  font-size: 14px;
+}
+
+.fila-datos {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.fila-datos:hover {
+  background: var(--fondo-tarjeta, #F3F4F6);
+}
+
+.fila-datos:last-child .celda-dato {
+  border-bottom: none;
+}
+
+/* Contenedor de acciones */
+.celda-acciones {
+  min-width: 200px; /* Ancho mínimo para acciones */
+  white-space: nowrap; /* Evita que los botones se rompan */
+}
+
+.contenedor-acciones {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap; /* Permite que los botones se envuelvan si es necesario */
+}
+
+/* Estilos para los botones dentro de la tabla */
+:host ::ng-deep .contenedor-acciones .boton-ui {
+  padding: 6px 10px !important;
+  font-size: 11px !important;
+  height: 32px !important;
+  min-width: auto !important; /* Cambiado de 32px a auto */
+  white-space: nowrap;
+}
+
+:host ::ng-deep .contenedor-acciones .boton-ui svg {
+  width: 14px !important;
+  height: 14px !important;
+}
+
+/* Media queries para responsividad */
+@media (max-width: 1400px) {
+  .celda-dato {
+    padding: 12px 8px; /* Reducir padding en pantallas más pequeñas */
+  }
+  
+  .celda-encabezado {
+    padding: 12px 8px;
+  }
+}

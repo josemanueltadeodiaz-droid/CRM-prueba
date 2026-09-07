@@ -1,0 +1,335 @@
+@if (clienteId) {
+  <!-- Backdrop con blur -->
+  <div class="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 z-40" (click)="onCerrar()"></div>
+
+  <!-- Dialog lateral derecho -->
+  <div class="fixed right-0 top-0 bottom-0 w-full md:w-2/3 lg:w-[550px] h-auto z-50 transform transition-transform duration-300 ease-out flex flex-col bg-white rounded-2xl gap-4 overflow-hidden m-2">
+
+  @if(mostrarEsqueleto()){
+    <!-- Skeleton Header -->
+    <div class="h-auto w-full flex flex-row justify-between items-center animate-pulse p-4 border-b border-zinc-100 ">
+      <!-- Titulo y subtitulo -->
+      <div class="flex flex-col gap-2">
+        <div class="h-5 w-28 bg-gray-200 rounded"></div>
+        <div class="h-5 w-40 bg-gray-200 rounded"></div>
+      </div>
+
+      <!-- Boton cerrar-->
+      <div class="size-6 bg-gray-200 rounded"></div>
+    </div>
+
+    <!-- Skeleton Main -->
+    <div class="h-full w-full overflow-y-auto flex flex-col gap-5 mb-4 animate-pulse">
+      <!-- Datos Skeleton -->
+      <section class="flex flex-col gap-3 border-b border-zinc-100 pb-4">
+        <div class="h-5 w-32 bg-gray-200 rounded ml-4"></div>
+
+        <!-- Nombre producto skeleton -->
+        <div class="grid grid-cols-2 items-start px-4">
+          <div class="h-5 w-28 bg-gray-200 rounded"></div>
+          <div class="h-5 w-40 bg-gray-200 rounded"></div>
+        </div>
+
+        <!-- Estado skeleton -->
+        <div class="grid grid-cols-4 items-start px-4">
+          <div class="col-span-2 h-5 w-16 bg-gray-200 rounded"></div>
+          <div class="col-span-1 h-7 w-20 bg-gray-200 rounded-full"></div>
+        </div>
+
+        <!-- Código skeleton -->
+        <div class="grid grid-cols-2 items-start px-4">
+          <div class="h-5 w-16 bg-gray-200 rounded"></div>
+          <div class="h-5 w-32 bg-gray-200 rounded"></div>
+        </div>
+
+        <!-- Costo estándar skeleton -->
+        <div class="grid grid-cols-2 items-start px-4">
+          <div class="h-5 w-24 bg-gray-200 rounded"></div>
+          <div class="h-5 w-28 bg-gray-200 rounded"></div>
+        </div>
+      </section>
+
+      <!-- Precios Skeleton -->
+      <section class="flex flex-col gap-3 border-b border-zinc-100 pb-4">
+        <div class="h-5 w-20 bg-gray-200 rounded ml-4"></div>
+
+        @for (i of [1,2,3]; track i) {
+        <div class="grid grid-cols-2 items-start px-4">
+          <div class="h-5 w-16 bg-gray-200 rounded"></div>
+          <div class="h-5 w-28 bg-gray-200 rounded"></div>
+        </div>
+        }
+      </section>
+
+      <!-- Costos e Impuestos Skeleton -->
+      <section class="flex flex-col gap-3 border-b border-zinc-100 pb-4">
+        <div class="h-5 w-32 bg-gray-200 rounded ml-4"></div>
+
+        @for (i of [1,2]; track i) {
+        <div class="grid grid-cols-2 items-start px-4">
+          <div class="h-5 w-28 bg-gray-200 rounded"></div>
+          <div class="h-5 w-28 bg-gray-200 rounded"></div>
+        </div>
+        }
+      </section>
+
+      <!-- Información Adicional Skeleton -->
+      <section class="flex flex-col gap-3 border-b border-zinc-100 pb-4">
+        <div class="h-5 w-32 bg-gray-200 rounded ml-4"></div>
+
+        <div class="grid grid-cols-4 items-start px-4">
+          <div class="col-span-2 h-5 w-28 bg-gray-200 rounded"></div>
+          <div class="col-span-1 h-7 w-24 bg-gray-200 rounded-full"></div>
+        </div>
+
+        <div class="grid grid-cols-2 items-start px-4">
+          <div class="h-5 w-28 bg-gray-200 rounded"></div>
+          <div class="h-5 w-24 bg-gray-200 rounded"></div>
+        </div>
+
+        <div class="grid grid-cols-2 items-start px-4">
+          <div class="h-5 w-20 bg-gray-200 rounded"></div>
+          <div class="h-5 w-32 bg-gray-200 rounded"></div>
+        </div>
+      </section>
+    </div>    
+  }
+
+  @if(errorDeConexion()){
+    <div class=" w-full h-full flex flex-col gap-6 justify-center items-center text-center">
+      <div class="flex items-center justify-center bg-red-50 rounded-full size-16">
+        <app-ui-icono name="exclamation-triangle" size="size-8" color="text-red-600"></app-ui-icono>
+      </div>
+      <div class="flex flex-col gap-2">
+        <span class="text-xl font-semibold text-gray-900">Error al cargar los datos</span>
+        <span class="text-base font-normal text-gray-500 max-w-sm">
+          No se pudieron cargar los detalles del cliente. Por favor, intenta de nuevo.
+        </span>
+      </div>
+      <app-ui-boton variante="cerrar" texto="Reiniciar" (alClickear)=" cargarCliente()">
+      </app-ui-boton>
+    </div>    
+  }
+  @if(cliente()){
+    <!-- Header -->
+    <app-header-modal titulo="{{ cliente()!.rfc }}" descripcion="Detalles del cliente" (cerrarModal)="onCerrar()"></app-header-modal>
+    <!-- Main -->
+    <div class="h-full w-full overflow-y-auto flex flex-col gap-5 mb-4">
+      <!-- Datos -->
+      <section class="flex flex-col gap-3 border-b border-zinc-100 pb-4">
+        <span class="text-sm font-medium tracking-wide text-slate-800 ml-4">Información general</span>
+
+        <!-- Nombre del cliente -->
+        <div class="grid grid-cols-2 items-start px-4">
+          <p class="col-span-1 text-base text-slate-500 font-medium tracking-wider">
+            Nombre cliente
+          </p>
+          <p class="col-span-1 text-base text-slate-800 font-medium tracking-wider">
+            {{ cliente()!.nombre }}
+          </p>
+        </div>
+
+        <!-- Código de cliente -->
+        <div class="grid grid-cols-2 items-start px-4">
+          <p class="col-span-1 text-base text-slate-500 font-medium tracking-wider">
+            Código
+          </p>
+          <p class="col-span-1 text-base text-slate-800 font-medium tracking-wider">
+            {{ cliente()!.codigoCliente }}
+          </p>
+        </div>
+
+        <!-- Estado -->
+        <div class="grid grid-cols-4 items-start px-4">
+          <p class="col-span-2 text-base text-slate-500 font-medium tracking-wider">
+            Estado
+          </p>
+          @if (cliente()!.estado === 'activo') {
+            <div class="col-span-1 flex justify-center items-center bg-green-100 rounded-xs px-2 py-1 w-auto h-auto">
+              <app-ui-tipografia variante="p-sm" texto="Activo" color="text-green-800"></app-ui-tipografia>
+            </div>
+          } @else {
+            <div class="col-span-1 flex justify-center items-center bg-red-100 rounded-xs px-2 py-1 w-auto h-auto">
+              <app-ui-tipografia variante="p-sm" texto="Inactivo" color="text-red-800"></app-ui-tipografia>
+            </div>
+          }
+        </div>
+
+        <!-- Ubicación -->
+        <div class="grid grid-cols-2 items-start px-4">
+          <p class="col-span-1 text-base text-slate-500 font-medium tracking-wider">
+            Ubicación
+          </p>
+          <p class="col-span-1 text-base text-slate-800 font-medium tracking-wider">
+            {{ cliente()!.ubicacion }}
+          </p>
+        </div>
+      </section>
+
+      <!-- Información de Contacto -->
+      <section class="flex flex-col gap-3 border-b border-zinc-100 pb-4">
+        <span class="text-sm font-medium tracking-wide text-slate-800 ml-4">Información de contacto</span>
+
+        <!-- Teléfono -->
+        <div class="grid grid-cols-2 items-start px-4">
+          <p class="col-span-1 text-base text-slate-500 font-medium tracking-wider">
+            Teléfono
+          </p>
+          <p class="col-span-1 text-base text-slate-800 font-medium tracking-wider">
+            {{ cliente()!.telefono }}
+          </p>
+        </div>
+
+        <!-- Email Principal -->
+        <div class="grid grid-cols-2 items-start px-4">
+          <p class="col-span-1 text-base text-slate-500 font-medium tracking-wider">
+            Email principal
+          </p>
+          @if(cliente()!.email){
+            <p class="col-span-1 break-all text-base text-slate-800 font-medium tracking-wider">
+              {{ cliente()!.email }} 
+            </p>
+          } @else {
+            <p class="col-span-1 text-base text-slate-800 font-medium tracking-wider">
+            Sin correo 
+            </p>            
+          }
+
+        </div>
+
+        <!-- Email 2 -->
+        @if (cliente()!.email2) {
+          <div class="grid grid-cols-2 items-start px-4">
+            <p class="col-span-1  text-base text-slate-500 font-medium tracking-wider">
+              Email secundario
+            </p>
+            <p class="col-span-1 break-all  text-base text-slate-800 font-medium tracking-wider">
+              {{ cliente()!.email2 }}
+            </p>
+          </div>
+        }
+
+        <!-- Email 3 -->
+        @if (cliente()!.email3) {
+          <div class="grid grid-cols-2 items-start px-4">
+            <p class="col-span-1 break-all  text-base text-slate-500 font-medium tracking-wider">
+              Email alternativo
+            </p>
+            <p class="col-span-1 text-base text-slate-800 font-medium tracking-wider">
+              {{ cliente()!.email3 }}
+            </p>
+          </div>
+        }
+      </section>
+
+      <!-- Información Adicional -->
+      @if (cliente()!.ubicacionDetalle) {
+        <section class="flex flex-col gap-3 border-b border-zinc-100 pb-4">
+          <span class="text-sm font-medium tracking-wide text-slate-800 ml-4">Detalles de ubicación</span>
+
+          <!-- Calle -->
+          @if (cliente()!.ubicacionDetalle!.calle) {
+            <div class="grid grid-cols-2 items-start px-4">
+              <p class="col-span-1 text-base text-slate-500 font-medium tracking-wider">
+                Calle
+              </p>
+              <p class="col-span-1 text-base text-slate-800 font-medium tracking-wider">
+                {{ cliente()!.ubicacionDetalle!.calle }}
+              </p>
+            </div>
+          }
+
+          <!-- Número exterior -->
+          @if (cliente()!.ubicacionDetalle!.numeroExterior) {
+            <div class="grid grid-cols-2 items-start px-4">
+              <p class="col-span-1 text-base text-slate-500 font-medium tracking-wider">
+                Número exterior
+              </p>
+              <p class="col-span-1 text-base text-slate-800 font-medium tracking-wider">
+                {{ cliente()!.ubicacionDetalle!.numeroExterior }}
+              </p>
+            </div>
+          }
+
+          <!-- Número interior -->
+          @if (cliente()!.ubicacionDetalle!.numeroInterior) {
+            <div class="grid grid-cols-2 items-start px-4">
+              <p class="col-span-1 text-base text-slate-500 font-medium tracking-wider">
+                Número interior
+              </p>
+              <p class="col-span-1 text-base text-slate-800 font-medium tracking-wider">
+                {{ cliente()!.ubicacionDetalle!.numeroInterior }}
+              </p>
+            </div>
+          }
+
+          <!-- Colonia -->
+          @if (cliente()!.ubicacionDetalle!.colonia) {
+            <div class="grid grid-cols-2 items-start px-4">
+              <p class="col-span-1 text-base text-slate-500 font-medium tracking-wider">
+                Colonia
+              </p>
+              <p class="col-span-1 text-base text-slate-800 font-medium tracking-wider">
+                {{ cliente()!.ubicacionDetalle!.colonia }}
+              </p>
+            </div>
+          }
+
+          <!-- Código postal -->
+          @if (cliente()!.ubicacionDetalle!.codigoPostal) {
+            <div class="grid grid-cols-2 items-start px-4">
+              <p class="col-span-1 text-base text-slate-500 font-medium tracking-wider">
+                Código postal
+              </p>
+              <p class="col-span-1 text-base text-slate-800 font-medium tracking-wider">
+                {{ cliente()!.ubicacionDetalle!.codigoPostal }}
+              </p>
+            </div>
+          }
+
+          <!-- Ciudad -->
+          @if (cliente()!.ubicacionDetalle!.ciudad) {
+            <div class="grid grid-cols-2 items-start px-4">
+              <p class="col-span-1 text-base text-slate-500 font-medium tracking-wider">
+                Ciudad
+              </p>
+              <p class="col-span-1 text-base text-slate-800 font-medium tracking-wider">
+                {{ cliente()!.ubicacionDetalle!.ciudad }}
+              </p>
+            </div>
+          }
+
+          <!-- Estado (detalle) -->
+          @if (cliente()!.ubicacionDetalle!.estado) {
+            <div class="grid grid-cols-2 items-start px-4">
+              <p class="col-span-1 text-base text-slate-500 font-medium tracking-wider">
+                Estado
+              </p>
+              <p class="col-span-1 text-base text-slate-800 font-medium tracking-wider">
+                {{ cliente()!.ubicacionDetalle!.estado }}
+              </p>
+            </div>
+          }
+
+          <!-- País -->
+          @if (cliente()!.ubicacionDetalle!.pais) {
+            <div class="grid grid-cols-2 items-start px-4">
+              <p class="col-span-1 text-base text-slate-500 font-medium tracking-wider">
+                País
+              </p>
+              <p class="col-span-1 text-base text-slate-800 font-medium tracking-wider">
+                {{ cliente()!.ubicacionDetalle!.pais }}
+              </p>
+            </div>
+          }
+        </section>
+      }
+    </div>
+
+  }
+
+  </div>
+}
+
+
+

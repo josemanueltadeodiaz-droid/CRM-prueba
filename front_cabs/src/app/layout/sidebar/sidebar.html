@@ -1,0 +1,194 @@
+@if (layoutService.mobileSidebarOpen()) {
+  <div class="fixed inset-0 bg-gray-900/50 z-40 lg:hidden" (click)="layoutService.closeMobileSidebar()"></div>
+}
+<aside class="sidebar-container bg-white" [class.collapsed]="isCollapsed" [class.mobile-open]="layoutService.mobileSidebarOpen()">
+  <!-- Botón toggle -->
+  <button type="button" (click)="toggleSidebar()" class="sidebar-toggle-btn" aria-label="Colapsar sidebar">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+      class="icon-sm">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+    </svg>
+  </button>
+
+  <!-- Logo -->
+  <div class="sidebar-logo">
+    @if (!isCollapsed) {
+      <img src="/logoCompleto.png" alt="Logo de la empresa" class="logo-full" />
+    } @else {
+      <img src="/logo.png" alt="Logo de la empresa" class="logo-small" />
+    }
+  </div>
+
+  <!-- Lista principal de navegación -->
+  <div class="sidebar-nav-container">
+    <!-- PRIMER NAV - General -->
+    @if (!isCollapsed) {
+      <p class="nav-section-title">General</p>
+    }
+    <nav class="nav-list">
+      <!-- Filtrar y mostrar solo los items del primer nav (Resumen y Calendario) -->
+      @for (item of mainNav.slice(0,3); track item.id) {
+        <ng-container *ngTemplateOutlet="navItemTemplate; context: { $implicit: item }"></ng-container>
+      }
+    </nav>
+
+    <!-- SEGUNDO NAV - CONTPAQi -->
+    @if (!isCollapsed) {
+      <p class="nav-section-title">CONTPAQi®</p>
+    }
+    <nav class="nav-list">
+      <!-- Mostrar solo CONTPAQi (tercer item) -->
+      @for (item of mainNav.slice(3,4); track item.id) {
+        <ng-container *ngTemplateOutlet="navItemTemplate; context: { $implicit: item }"></ng-container>
+      }
+    </nav>
+
+    <!-- TERCER NAV - Sistema -->
+    @if (!isCollapsed) {
+      <p class="nav-section-title">Sistema</p>
+    }
+    <nav class="nav-list">
+      <!-- Mostrar Usuarios, Configuración y Ayuda (items 3-6) -->
+      @for (item of mainNav.slice(4); track item.id) {
+        <ng-container *ngTemplateOutlet="navItemTemplate; context: { $implicit: item }"></ng-container>
+      }
+    </nav>
+  </div>
+</aside>
+
+<!-- Template para los items de navegación -->
+<ng-template #navItemTemplate let-item>
+  <div class="nav-item-wrapper">
+    <!-- Item principal -->
+    <div class="nav-item-container" 
+        [class.has-children]="hasChildren(item)"
+        [class.active-parent]="hasActiveChild(item)">
+      
+      <!-- Link principal (si tiene link) -->
+      @if (item.link) {
+        <a [routerLink]="item.link" 
+          (click)="layoutService.closeMobileSidebar()"
+          routerLinkActive="active"
+          #rla="routerLinkActive"
+          class="nav-link" 
+          [class.collapsed]="isCollapsed"
+          [class.active]="rla.isActive || hasActiveChild(item)">
+          <span class="nav-icon-wrapper" [class.active]="rla.isActive || hasActiveChild(item)">
+            <ng-container *ngTemplateOutlet="iconTemplate; context: { $implicit: item.icon, isActive: rla.isActive || hasActiveChild(item) }"></ng-container>
+            @if (item.notify) {
+              <span class="nav-notify-badge"></span>
+            }
+          </span>
+          @if (!isCollapsed) {
+            <span class="nav-label" [class.active]="rla.isActive || hasActiveChild(item)">
+              {{ item.label }}
+            </span>
+          }
+        </a>
+      } @else {
+        <!-- Si no tiene link, es un contenedor de submenu -->
+        <div class="nav-link" 
+            [class.collapsed]="isCollapsed"
+            [class.active]="hasActiveChild(item)"
+            (click)="toggleSubmenu(item, $event)">
+          <span class="nav-icon-wrapper" [class.active]="hasActiveChild(item)">
+            <ng-container *ngTemplateOutlet="iconTemplate; context: { $implicit: item.icon, isActive: hasActiveChild(item) }"></ng-container>
+            @if (item.notify) {
+              <span class="nav-notify-badge"></span>
+            }
+          </span>
+          @if (!isCollapsed) {
+            <span class="nav-label" [class.active]="hasActiveChild(item)">
+              {{ item.label }}
+            </span>
+          }
+        </div>
+      }
+      
+      <!-- Botón de toggle submenu -->
+      @if (!isCollapsed && hasChildren(item)) {
+        <button type="button" 
+                (click)="toggleSubmenu(item, $event)" 
+                class="submenu-toggle-btn"
+                [class.expanded]="item.expanded"
+                [class.active]="hasActiveChild(item)">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="icon-xs">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+          </svg>
+        </button>
+      }
+    </div>
+    
+    <!-- Submenu -->
+    @if (!isCollapsed && hasChildren(item) && item.expanded) {
+      <div class="submenu-container">
+        @for (child of item.children; track child.id) {
+          <a [routerLink]="child.link" 
+            (click)="layoutService.closeMobileSidebar()"
+            routerLinkActive="active"
+            #childRla="routerLinkActive"
+            class="nav-link submenu-link"
+            [class.active]="childRla.isActive">
+            <span class="submenu-indicator" [class.active]="childRla.isActive"></span>
+            <span class="nav-label" [class.active]="childRla.isActive">{{ child.label }}</span>
+          </a>
+        }
+      </div>
+    }
+  </div>
+</ng-template>
+
+<!-- Template para íconos -->
+<ng-template #iconTemplate let-icon let-isActive="isActive">
+  @switch (icon) {
+    @case ('resumen') {
+      <app-ui-icono
+        name="chart-bar-square" 
+        size="size-5"
+        [color]="isActive ? 'text-blue-800' : 'text-gray-500'"
+      ></app-ui-icono>
+    }
+    @case ('calendario') {
+      <app-ui-icono
+        name="calendar" 
+        size="size-5"
+        [color]="isActive ? 'text-blue-800' : 'text-gray-500'"
+      ></app-ui-icono>
+    }
+    @case ('ordenesServicio') {
+      <app-ui-icono
+        name="clipboard-document-list" 
+        size="size-5"
+        [color]="isActive ? 'text-blue-800' : 'text-gray-500'"
+      ></app-ui-icono>
+    }    
+    @case ('conpaqi') {
+      <app-ui-icono
+        name="clipboard-document-list" 
+        size="size-5"
+        [color]="isActive ? 'text-blue-800' : 'text-gray-500'"
+      ></app-ui-icono>
+    }
+    @case ('usuarios'){
+      <app-ui-icono
+        name="users"
+        size="size-5"
+        [color]="isActive ? 'text-blue-800' : 'text-gray-500'"
+      ></app-ui-icono>
+    }
+    @case('configuracion'){
+      <app-ui-icono
+        name="cog-6-tooth"
+        size="size-5"
+        [color]="isActive ? 'text-blue-800' : 'text-gray-500'"
+      ></app-ui-icono>                
+    }
+    @case('ayuda'){
+      <app-ui-icono
+        name="information-circle"
+        size="size-5"
+        [color]="isActive ? 'text-blue-800' : 'text-gray-500'"
+      ></app-ui-icono>                
+    }
+  }
+</ng-template>

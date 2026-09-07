@@ -1,0 +1,172 @@
+<div class="flex flex-col h-full max-h-[90vh] w-[500px] max-w-[900px] mx-auto overflow-hidden bg-white my-4 gap-6">
+  <!-- Header  -->
+  <div class="flex-shrink-0">
+    <app-header-modal
+      titulo="Crear un usuario"
+      descripcion="Llena el formulario para crear un usuario"
+      (click)="cerrar()"      
+      >
+    </app-header-modal>
+  </div>
+
+  <!-- Contenido + Botones -->
+  <div class="flex-1 overflow-y-auto">
+    <form [formGroup]="form" class="flex flex-col gap-4 mx-4">
+      <!-- Datos personales -->
+      <div class="flex flex-col gap-2">
+        <!-- Subitulo + Inputs -->
+        <div class="flex flex-col gap-2">
+          <app-ui-tipografia
+            variante="caption-lg"
+            texto="Información Personal">
+          </app-ui-tipografia>
+          <!-- Inputs -->
+          <div class="flex flex-col gap-3.5">
+            <!-- Input Nombre -->
+            <app-ui-input-field 
+              label="Nombre" 
+              placeholder="Escribe el nombre" 
+              variant="text" 
+              [labelObligatorio]="true" 
+              formControlName="nombre" 
+              class="flex-1">
+            </app-ui-input-field>
+            <!-- Input Apellido -->
+            <app-ui-input-field 
+              label="Apellido" 
+              placeholder="Escribe el apellido" 
+              variant="text" 
+              [labelObligatorio]="true" 
+              formControlName="apellido" 
+              class="flex-1">
+            </app-ui-input-field>
+            <!-- Input Telefono -->
+            <app-ui-input-field 
+              label="Teléfono" 
+              placeholder="618..." 
+              variant="tel" 
+              [labelObligatorio]="true" 
+              formControlName="telefono" 
+              nombreIcono="phone" 
+              class="flex-1">
+            </app-ui-input-field> 
+          </div>            
+        </div>
+      </div>
+
+      <app-ui-divider></app-ui-divider>                
+      
+      <!-- Descripcion del usuario -->
+      <div class="flex flex-col gap-2">
+        <!-- Subtitulo + Inputs -->
+        <div class="flex flex-col gap-2">
+          <!-- Subitulo-->
+          <app-ui-tipografia
+            variante="caption-lg"
+            texto="Configuración del Rol">
+          </app-ui-tipografia>
+          <!-- Inputs -->
+          <div class="flex flex-col gap-3.5">
+            <!-- Input: Tipo de rol -->
+            <app-ui-input-field 
+              label="Tipo de rol" 
+              variant="select" 
+              [labelObligatorio]="true" 
+              [options]="roles" 
+              formControlName="rol" 
+              nombreIcono="tag" 
+              class="flex-1">
+            </app-ui-input-field> 
+            <!-- Input: Puede conducir un vehiculo -->
+            <app-ui-input-field 
+              variant="checkbox" 
+              label="¿Puede conducir un vehículo?"
+              formControlName="puedeConducir" 
+              (checkedChange)="estadoCheckot($event)"
+              class="w-full">
+            </app-ui-input-field>
+            <!-- Input: Tipo de transmisión -->
+            @if (visualizarInputTrasmision) {
+              <div class="w-full">
+                <app-ui-input-field 
+                  label="Tipo de transmisión" 
+                  variant="select" 
+                  [labelObligatorio]="true" 
+                  [options]="trasmision" 
+                  formControlName="transmisionHabilitada" 
+                  nombreIcono="truck" 
+                  class="w-full">
+                </app-ui-input-field>
+              </div>    
+            }              
+          </div>
+        </div>
+      </div>
+
+      <app-ui-divider></app-ui-divider>  
+      
+      <!-- Correo + Contraseña -->
+      <div class="flex flex-col gap-2">
+        <!-- Subitulo + Inputs -->
+        <div class="flex flex-col gap-2">
+          <app-ui-tipografia
+            variante="caption-lg"
+            texto="Cuenta de Usuario">
+          </app-ui-tipografia>
+          <!-- Inputs -->
+          <div class="flex flex-col gap-3.5">
+            <!-- Input: Correo -->
+            <app-ui-input-field 
+              label="Correo" 
+              placeholder="ejemplo@correo.com" 
+              variant="email" 
+              [labelObligatorio]="true" 
+              nombreIcono="envelope" 
+              formControlName="email"
+              class="w-full">
+            </app-ui-input-field>
+            <!-- Input: Contraseña -->
+            <app-ui-input-field 
+              label="Contraseña" 
+              placeholder="Escribe la contraseña" 
+              variant="password" 
+              [labelObligatorio]="true" 
+              formControlName="contrasena" 
+              nombreIcono="lock-closed" 
+              class="w-full">
+            </app-ui-input-field>
+            <!-- Input: Confirmar contraseña -->
+            <app-ui-input-field 
+              label="Confirmar contraseña" 
+              placeholder="Repite la contraseña" 
+              variant="password" 
+              [labelObligatorio]="true" 
+              formControlName="confirmarContrasena" 
+              nombreIcono="lock-closed" 
+              class="w-full">
+            </app-ui-input-field>
+          </div>
+        </div>
+      </div>
+
+      <app-ui-divider></app-ui-divider>         
+    </form>
+    <!-- Botones -->
+      <div class="flex justify-end gap-2 mx-4 mt-6">
+        <!-- Boton: Cerrar -->
+        <app-ui-boton 
+          variante="cancelar" 
+          texto="Cerrar" 
+          (click)="cerrar()" 
+          [anchoCompleto]="false">
+        </app-ui-boton> 
+        <!-- Boton: Crear usuario -->
+        <app-ui-boton 
+          variante="primario" 
+          texto="Crear usuario" 
+          (click)="guardar()" 
+          [anchoCompleto]="false">
+        </app-ui-boton>
+      </div>
+  </div>  
+</div>

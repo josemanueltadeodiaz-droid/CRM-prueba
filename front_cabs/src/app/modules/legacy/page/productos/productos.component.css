@@ -1,0 +1,127 @@
+/* Estilos para el componente de productos */
+
+/* Inputs & Search */
+.modern-input {
+  width: 100%;
+  border: 1px solid #e5e7eb; /* gray-200 */
+  border-radius: 0.75rem;
+  padding: 0.5rem 1rem;
+  transition: all 0.2s;
+}
+
+.modern-input:focus {
+  outline: none;
+  border-color: #2563eb; /* blue-600 */
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); /* blue-100 */
+}
+
+.search-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.search-icon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6b7280; /* gray-500 */
+  pointer-events: none;
+}
+
+.search-input-with-button {
+  padding-left: 2.5rem; /* Space for icon */
+  padding-right: 6rem; /* Space for button */
+  height: 3rem;
+}
+
+.search-button {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #2563eb; /* blue-600 */
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.4rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+}
+
+.search-button:hover {
+  background: #1d4ed8; /* blue-700 */
+  transform: translateY(-50%) scale(1.02);
+  box-shadow: 0 4px 6px rgba(37, 99, 235, 0.3);
+}
+
+.search-button:active {
+  transform: translateY(-50%) scale(0.98);
+}
+
+.search-button:disabled {
+  background: #9ca3af; /* gray-400 */
+  cursor: not-allowed;
+  transform: translateY(-50%);
+  box-shadow: none;
+}
+/* Fin estilos para el componente de productos */
+:host {
+  display: block;
+}
+
+/* Estilos para la tabla personalizada */
+.tabla-productos ::ng-deep table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.tabla-productos ::ng-deep thead {
+  background-color: #f9fafb;
+}
+
+.tabla-productos ::ng-deep th {
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.tabla-productos ::ng-deep td {
+  padding: 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.tabla-productos ::ng-deep tr:hover {
+  background-color: #f9fafb;
+}
+
+/* Estilos para el estado activo/inactivo */
+.estado-activo {
+  background-color: #d1fae5;
+  color: #065f46;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.estado-inactivo {
+  background-color: #fee2e2;
+  color: #991b1b;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}

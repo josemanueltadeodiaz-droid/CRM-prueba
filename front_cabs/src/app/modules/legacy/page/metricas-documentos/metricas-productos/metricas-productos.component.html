@@ -1,0 +1,281 @@
+<div class="space-y-6 flex flex-col p-1 gap-6">
+  <!-- Encabezado & Filtros -->
+  <div class="flex flex-col gap-4 justify-between">
+    <!-- Encabezado  -->
+    <app-ui-header
+      titulo="Análisis de productos"
+      descripcion="Visualiza la gráfica y el top de productos cotizados."
+      tipoSeccion="encabezadoTabs"
+      [visualizarButton]="false">
+    </app-ui-header>    
+
+    <!-- Filtros principales -->
+    <div class="flex justify-items-start gap-4 items-end h-auto">
+      <!-- Filtro de fecha: Periodo de Análisis -->
+      <div class="flex flex-col gap-0.5">
+        <app-ui-tipografia 
+          variante="p-sm"
+          texto="Periodo de Análisis">
+        </app-ui-tipografia>
+        <input 
+          type="month" 
+          class="p-2.5 mt-2 w-full bg-gray-50 border border-neutral-200 rounded-sm cursor-pointer"
+          [(ngModel)]="selectedMonth"
+          (change)="calcularFechasDesdeMes()"> 
+      </div>
+
+      <!-- Filtro de top limit -->
+      <app-ui-input-field
+        label="Selecciona el top"
+        variant="select"
+        placeholder="Seleccionar top"
+        [visualizarIcono]="false"
+        [options]="opcionesRango" 
+        class="w-[200px]"
+        [(ngModel)]="topLimit">
+        <!-- Sin (ngModelChange) aquí -->
+      </app-ui-input-field>
+      
+      <!-- Botones de acción -->
+      <div class="flex gap-4 justify-center items-center">
+        <app-ui-boton
+          variante="cerrar"
+          texto="Limpiar"
+          (click)="limpiarFiltros()">
+        </app-ui-boton>
+        <app-ui-boton
+          variante="cerrar"
+          texto="Aplicar Filtros"
+          (click)="aplicarFiltros()">
+        </app-ui-boton>
+      </div>
+
+      <!-- Botón desplegable para descargas -->
+      <div 
+        class="flex relative justify-center items-center p-2.5 gap-4 border rounded-sm cursor-pointer group bg-white" 
+        [class]="isDialogOpen ? 'border-blue-500' : 'border-neutral-200'"
+        (click)="toggleDialog()">
+        
+        <!-- Icono y texto del botón -->
+        <div class="flex gap-2">
+          <app-ui-icono
+            name="arrow-down-tray"
+            color="text-slate-500"
+            size="size-4">
+          </app-ui-icono>
+          <app-ui-tipografia 
+            variante="p-sm"
+            texto="Descargar"
+            color="text-slate-500">
+          </app-ui-tipografia>
+        </div>
+
+        <!-- Icono de flecha (cambia según estado) -->
+        @if(isDialogOpen){
+          <app-ui-icono
+            name="chevron-up"
+            color="text-blue-500"
+            size="size-4">
+          </app-ui-icono>
+        } @else {
+          <app-ui-icono
+            name="chevron-down"
+            color="text-slate-500"
+            size="size-4">
+          </app-ui-icono>
+        }
+        
+        <!-- Diálogo desplegable para opciones de descarga -->
+        @if(isDialogOpen){
+          <div class="bg-white absolute right-0 top-full mt-1 py-3 flex flex-col shadow-xs rounded-md min-w-max z-50 border border-neutral-100">
+            <!-- Opción: Descargar PDF -->
+            <button class="px-4 py-2 hover:bg-gray-50 text-left whitespace-nowrap cursor-pointer" 
+                    (click)="$event.stopPropagation(); exportToPdf()">
+              <app-ui-tipografia
+                variante="caption-md"
+                texto="Descargar en formato PDF(.pdf)"
+                color="text-gray-700">
+              </app-ui-tipografia>
+            </button>
+            
+            <!-- Opción: Descargar Excel -->
+            <button class="px-4 py-2 hover:bg-gray-50 text-left whitespace-nowrap cursor-pointer" 
+                    (click)="$event.stopPropagation(); exportToExcel()">
+              <app-ui-tipografia
+                variante="caption-md"
+                texto="Descargar en formato EXCEL(.xlsx)"
+                color="text-gray-700">
+              </app-ui-tipografia>
+            </button>
+          </div>
+        }
+      </div>
+    </div>     
+  </div>
+  
+  <!-- Error -->
+  @if(error){
+    <div class="bg-white border border-neutral-200 w-full rounded-2xl p-2.5">
+        <div class="flex-1 min-h-[400px] p-8 flex items-center justify-center">
+          <div
+            class="flex flex-col gap-6 justify-center items-center max-w-md text-center"
+          >
+            <div
+              class="flex items-center justify-center bg-red-50 rounded-full size-16"
+            >
+              <app-ui-icono
+                name="exclamation-triangle"
+                size="size-8"
+                color="text-red-600"
+              ></app-ui-icono>
+            </div>
+            <div class="flex flex-col gap-2">
+              <span class="text-xl font-semibold text-gray-900"
+                >Error al cargar los datos</span
+              >
+              <span class="text-base font-normal text-gray-500">
+                No se pudieron cargar las metricas de los prodcutos . Por favor, intenta de
+                nuevo.
+              </span>
+              @if (error; as errorMessage) {
+                <div class="mt-2 p-3 bg-red-50 rounded-lg text-left">
+                  <p class="text-sm font-medium text-red-800 mb-1">
+                    Detalle del error:
+                  </p>
+                  <p class="text-sm text-red-700">{{ errorMessage }}</p>
+                </div>
+              }
+            </div>
+            <div class="flex gap-3 mt-1">
+              <app-ui-boton
+                variante="cerrar"
+                texto="Reintentar"
+                (click)="limpiarFiltros()"
+              ></app-ui-boton>
+            </div>
+          </div>
+        </div>
+    </div>
+  }
+
+  <!-- Contenido -->
+  @if(productos.length){
+    <div class="flex flex-col gap-6">
+      <!-- Tabla -->
+      <div class=" bg-white rounded-xl border border-zinc-200 overflow-hidden flex flex-col">
+        <!-- Encabezado -->
+        <div class="p-4 border-b border-zinc-200">
+          <app-ui-tipografia
+            variante="h5"
+            texto="Top de Productos">
+          </app-ui-tipografia>
+        </div>
+        
+        <!-- Tabla con scroll -->
+        <div class="bg-white m-2.5 rounded-xl border border-neutral-200 overflow-hidden">
+          <div class="overflow-y-auto max-h-[500px]">
+            <table class="custom-table w-full table-fixed">
+              <thead class="bg-gray-50 border-b border-neutral-200 sticky top-0 z-10">
+                <tr>
+                  <th class="w-20 px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">#</th>
+                  <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Producto</th>
+                  <th class="w-32 px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Cotizaciones</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-neutral-200">
+                <!-- Iteración sobre la lista de productos -->
+                <tr *ngFor="let p of productos; let i = index; let odd = odd" 
+                    [class.bg-gray-50]="odd"
+                    class="transition-colors hover:bg-blue-50">
+                  <td class="w-20 px-6 py-4 text-sm font-medium text-gray-900">{{ i + 1 }}</td>
+                  <td class="px-6 py-4 text-sm text-gray-700 whitespace-normal break-words" [title]="p.nombreProducto || p.codigoProducto">
+                    {{ p.nombreProducto || p.codigoProducto }}
+                  </td>
+                  <td class="w-32 px-6 py-4 text-sm font-semibold text-gray-900 text-right whitespace-nowrap">
+                    {{ p.totalCotizaciones }}
+                  </td>
+                </tr>
+                
+                <!-- Fila vacía si no hay datos -->
+                <tr *ngIf="!productos || productos.length === 0">
+                  <td colspan="3" class="px-6 py-12 text-center text-sm text-gray-500">
+                    No hay productos para mostrar
+                  </td>
+                </tr>
+              </tbody>
+            </table>  
+          </div>  
+        </div>
+      </div>
+
+      <!-- Gráfica -->
+      <div class="lg:col-span-7 bg-white rounded-xl border border-zinc-200 overflow-hidden flex flex-col">
+        <!-- Encabezado -->
+        <div class="p-4 border-b border-zinc-200">
+          <app-ui-tipografia
+            variante="h5"
+            texto="Productos más Cotizados">
+          </app-ui-tipografia>
+        </div>
+        
+        <!-- Gráfica -->
+        <div class="flex-1 p-4">
+          <canvas #productosChart class="w-full h-full"></canvas>
+        </div>
+      </div>
+    </div>
+  }
+  
+  <!-- Sin datos -->
+  @if(!productos.length && !error){
+    <div class="flex flex-col  gap-6">
+      <!-- Tabla -->
+      <div class=" bg-white rounded-xl border border-zinc-200 overflow-hidden flex flex-col">
+        <!-- Encabezado -->
+        <div class="p-4 border-b border-zinc-200">
+          <app-ui-tipografia
+            variante="h5"
+            texto="Top de Productos">
+          </app-ui-tipografia>
+        </div>
+        <!-- Empty state -->        
+        <div class="flex-1 min-h-[300px] p-2.5 flex items-center justify-center">
+          <div class="flex flex-col gap-2 justify-center items-center">
+            <div class="flex items-center justify-center bg-blue-50 rounded-full size-12">
+              <app-ui-icono name="table-cells" size="size-6" color="text-blue-700"></app-ui-icono>
+            </div>
+            <div class="flex flex-col gap-1">
+              <span class="text-lg font-medium text-center leading-7 text-gray-900">Sin datos disponibles</span>
+              <span class="text-sm font-normal text-center leading-5 text-gray-500">Sin datos de productos para mostrar.</span>
+            </div>
+          </div>
+        </div> 
+      </div>
+
+      <!-- Gráfica -->
+      <div class="lg:col-span-7 bg-white rounded-xl border border-zinc-200 overflow-hidden flex flex-col">
+        <!-- Encabezado -->
+        <div class="p-4 border-b border-zinc-200">
+          <app-ui-tipografia
+            variante="h5"
+            texto="Productos más Cotizados">
+          </app-ui-tipografia>
+        </div>
+        <!-- Empty state -->        
+        <div class="flex-1 p-4">
+          <div class="flex-1 min-h-[300px] p-2.5 flex items-center justify-center">
+            <div class="flex flex-col gap-2 justify-center items-center">
+              <div class="flex items-center justify-center bg-blue-50 rounded-full size-12">
+                <app-ui-icono name="chart-bar" size="size-6" color="text-blue-700"></app-ui-icono>
+              </div>
+              <div class="flex flex-col gap-1">
+                <span class="text-lg font-medium text-center leading-7 text-gray-900">Sin datos disponibles</span>
+                <span class="text-sm font-normal text-center leading-5 text-gray-500">Sin datos de productos para mostrar en este periodo.</span>
+              </div>
+            </div>
+          </div> 
+        </div>
+      </div>
+    </div>   
+  }
+</div>

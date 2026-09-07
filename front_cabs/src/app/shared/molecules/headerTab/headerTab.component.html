@@ -1,0 +1,30 @@
+<div class="w-full">
+    <div class="flex items-center justify-between w-full p-4">
+        
+        <!-- Titulo y descripción -->
+        <div class="flex gap-1 flex-col">
+            <app-ui-tipografia
+                variante="h3"
+                [texto]="titulo"   
+            >
+            </app-ui-tipografia>
+            
+            @if (visualizarDescripcion) {
+                <app-ui-tipografia
+                    variante="p-sm"
+                    [texto]="descripcion"
+                    
+                >
+                </app-ui-tipografia>
+            }
+        </div>
+        
+        <!-- Botón -->
+        @if(visualizarButton) {
+            <app-ui-boton
+                [texto]="buttonLabel"
+                (click)="onButtonClick()"
+            ></app-ui-boton>
+        }
+    </div>
+</div>

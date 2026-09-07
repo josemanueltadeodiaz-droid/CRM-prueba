@@ -1,0 +1,800 @@
+<div class="relative w-full">
+  <div class="flex flex-col p-1 gap-6 w-full">
+
+
+    <!-- Loading Indicator -->
+    @if (loading()) {
+      <!-- Skeleton Loader para la tabla de cotizaciones -->
+      <!-- header + filtro -->
+      <div class="flex flex-col gap-4 w-full">
+        <!-- Header con componente reutilizable -->
+        <!-- Encabezado -->
+        <div class="flex justify-between items-center p-4 bg-white w-full rounded-sm  border border-zinc-200">
+          <!-- Textos -->
+          <div class="flex flex-col gap-2">
+            <!-- Titulo -->
+            <div class="h-7.5 animate-pulse bg-zinc-200 rounded w-100"></div>
+            <!-- Parrafo -->
+            <div class="h-4 animate-pulse bg-zinc-200 rounded w-75"></div>
+          </div>
+          <!-- Boton -->
+          <div class="rounded-sm transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex justify-center items-center py-2.5 px-4 bg-gradient-to-r from-blue-600 to-blue-800 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] focus:ring-blue-500/50">
+            <div class="h-4 animate-pulse bg-zinc-200 rounded w-25"></div>
+          </div>              
+        </div>
+
+        <!-- Filtros-->
+        <div class="flex justify-items-start gap-4 items-end h-auto w-full">
+          <!-- Buscador -->
+          <app-ui-input-field
+            label="Buscador de agente"
+            placeholder="Buscador de folio y cliente"
+            variant="search"
+            class="w-1/5 min-w-0"
+            [(ngModel)]="textoBusqueda"
+          ></app-ui-input-field>
+
+          <!-- Seleccionar estado -->
+          <app-ui-input-field
+            label="Estado"
+            placeholder="Seleccionar estatus"
+            variant="select"
+            [visualizarIcono]="false"
+            class="w-1/5 min-w-0"
+            [(ngModel)]="estadoSeleccionado"
+          ></app-ui-input-field>
+
+          <app-ui-input-field
+            label="Tipo"
+            placeholder="Seleccionar Tipo"
+            variant="select"
+            [visualizarIcono]="false"
+            class="w-1/5 min-w-0"
+            [(ngModel)]="serieSeleccionada"
+            [options]="tipoSeleccionado"
+          ></app-ui-input-field>
+
+          <!-- Fecha inicio y fin-->
+          <div class="flex gap-4">
+            <!-- Fecha inicio -->
+            <div class="flex flex-col gap-1">
+              <app-ui-tipografia variante="p-sm" texto="Fecha inicio"></app-ui-tipografia>
+              <input
+                type="date"
+                class="p-2.5 mt-2 w-full bg-gray-50 border border-neutral-200 rounded-sm cursor-pointer focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
+                [(ngModel)]="fechaInicio"
+              />
+            </div>
+            <!-- Fecha fin -->
+            <div class="flex flex-col gap-1">
+              <app-ui-tipografia variante="p-sm" texto="Fecha fin"></app-ui-tipografia>
+              <input
+                type="date"
+                class="p-2.5 mt-2 w-full bg-gray-50 border border-neutral-200 rounded-sm cursor-pointer focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
+                [(ngModel)]="fechaFin"
+              />
+            </div>
+          </div>
+
+          <!-- Botones -->
+          <div class="flex gap-4 justify-center items-center">
+            <app-ui-boton variante="cerrar" texto="Limpiar" (click)="limpiarFiltros()"></app-ui-boton>
+            <app-ui-boton variante="cerrar" texto="Buscar" (click)="aplicarFiltros()"></app-ui-boton>
+          </div>
+        </div>
+
+        <!-- Resumen de filtros activos -->
+        @if (hayFiltrosActivos) {
+        <div class="flex items-center gap-2 px-2">
+          <span class="text-xs text-gray-500">Filtros aplicados:</span>
+          <span class="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded-md">{{ resumenFiltros }}</span>
+          <button (click)="limpiarFiltros()" class="text-xs cursor-pointer text-blue-600 hover:text-blue-800 underline">
+            Limpiar todos
+          </button>
+        </div>
+        }
+      </div>      
+      
+      <div class="bg-white border border-neutral-200 w-full rounded-2xl p-2.5">
+        <div class="bg-white rounded-xl border border-neutral-200 overflow-hidden w-full flex flex-col h-[600px]">
+          <!-- Header - Fijo (Skeleton) -->
+          <div class="flex-shrink-0">
+            <table class="custom-table w-full table-fixed">
+              <thead class="bg-gray-50 border-b border-neutral-200">
+                <tr>
+                  <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-[100px]">FOLIO</th>
+                  <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-[200px]">CLIENTE</th>
+                  <th class="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider w-[100px]">ESTADO</th>
+                  <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-[120px]">CREACIÓN</th>
+                  <th class="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider w-[120px]">SUBTOTAL</th>
+                  <th class="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider w-[100px]">IVA</th>
+                  <th class="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider w-[120px]">TOTAL</th>
+                  <th class="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider w-[150px]">ACCIONES</th>
+                </tr>
+              </thead>
+            </table>
+          </div>
+
+          <!-- Cuerpo de la tabla con scroll (Skeleton) -->
+          <div class="overflow-auto flex-1">
+            <table class="custom-table w-full table-fixed">
+              <tbody class="divide-y divide-neutral-200">
+                @for (item of [1,2,3,4,5,6,7,8,9,10]; track item) {
+                <tr [class.bg-gray-50]="item % 2 === 0" class="transition-colors">
+                  <!-- FOLIO -->
+                  <td class="px-6 py-4 w-[100px]">
+                    <div class="h-4 bg-gray-200 rounded-md animate-pulse w-16"></div>
+                  </td>
+
+                  <!-- CLIENTE -->
+                  <td class="px-6 py-4 w-[200px]">
+                    <div class="h-4 bg-gray-200 rounded-md animate-pulse w-32"></div>
+                  </td>
+
+                  <!-- ESTADO -->
+                  <td class="px-6 py-4 text-center w-[100px]">
+                    <div class="h-6 bg-gray-200 rounded-md animate-pulse w-16 mx-auto"></div>
+                  </td>
+
+                  <!-- CREACIÓN -->
+                  <td class="px-6 py-4 w-[120px]">
+                    <div class="h-4 bg-gray-200 rounded-md animate-pulse w-20"></div>
+                  </td>
+
+                  <!-- SUBTOTAL -->
+                  <td class="px-6 py-4 text-right w-[120px]">
+                    <div class="h-4 bg-gray-200 rounded-md animate-pulse w-16 ml-auto"></div>
+                  </td>
+
+                  <!-- IVA -->
+                  <td class="px-6 py-4 text-right w-[100px]">
+                    <div class="h-4 bg-gray-200 rounded-md animate-pulse w-12 ml-auto"></div>
+                  </td>
+
+                  <!-- TOTAL -->
+                  <td class="px-6 py-4 text-right w-[120px]">
+                    <div class="h-4 bg-gray-200 rounded-md animate-pulse w-16 ml-auto"></div>
+                  </td>
+
+                  <!-- ACCIONES -->
+                  <td class="px-6 py-4 w-[150px]">
+                    <div class="flex items-center justify-center gap-2">
+                      <div class="h-8 w-8 bg-gray-200 rounded-lg animate-pulse"></div>
+                      <div class="h-8 w-8 bg-gray-200 rounded-lg animate-pulse"></div>
+                      <div class="h-8 w-8 bg-gray-200 rounded-lg animate-pulse"></div>
+                    </div>
+                  </td>
+                </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Footer / Paginación - Fijo (Skeleton) -->
+          <div class="table-footer flex-shrink-0 px-6 py-4 border-t border-neutral-200 bg-gray-50 flex items-center justify-between">
+            <div class="h-4 bg-gray-200 rounded-md animate-pulse w-48"></div>
+
+            <div class="flex items-center gap-6">
+              <div class="flex items-center gap-2">
+                <div class="h-4 bg-gray-200 rounded-md animate-pulse w-24"></div>
+                <div class="h-8 w-16 bg-gray-200 rounded-md animate-pulse"></div>
+              </div>
+
+              <div class="navegacion-paginacion flex items-center gap-3">
+                <div class="h-8 w-8 bg-gray-200 rounded-lg animate-pulse"></div>
+                <div class="h-4 bg-gray-200 rounded-md animate-pulse w-12"></div>
+                <div class="h-8 w-8 bg-gray-200 rounded-lg animate-pulse"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Empty State - Error -->
+    @if (error()) { 
+      <div class="bg-white border border-neutral-200 w-full rounded-2xl p-2.5">
+        <div class="bg-white rounded-xl border border-neutral-200 overflow-hidden w-full">
+          <div class="flex-1 min-h-[400px] p-8 flex items-center justify-center">
+            <div class="flex flex-col gap-6 justify-center items-center max-w-md text-center">
+              <div class="flex items-center justify-center bg-red-50 rounded-full size-16">
+                <app-ui-icono name="exclamation-triangle" size="size-8" color="text-red-600"></app-ui-icono>
+              </div>
+              <div class="flex flex-col gap-2">
+                <span class="text-xl font-semibold text-gray-900">Error al cargar los datos</span>
+                <span class="text-base font-normal text-gray-500">
+                  No se pudieron cargar las cotizaciones. Por favor, intenta de nuevo.
+                </span>
+                @if (error(); as errorMessage) {
+                <div class="mt-2 p-3 bg-red-50 rounded-lg text-left">
+                  <p class="text-sm font-medium text-red-800 mb-1">Detalle del error:</p>
+                  <p class="text-sm text-red-700">{{ errorMessage }}</p>
+                </div>
+                }
+              </div>
+              <div class="flex gap-3 mt-1">
+                <app-ui-boton variante="cerrar" texto="Reintentar" (click)="cargarCotizaciones()"></app-ui-boton>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Main  -->
+    @if (!loading() && cotizaciones().length > 0) {
+      <!-- header + filtro -->
+      <div class="flex flex-col gap-4 w-full">
+        <!-- Header con componente reutilizable -->
+        <app-ui-header
+          titulo="Cotizaciones"
+          descripcion="Gestión de cotizaciones desde CONTPAQI"
+          buttonLabel="Crear cotización"
+          tipoSeccion="encabezadoPagina"
+          (buttonClick)="abrirModalCrear()"
+        ></app-ui-header>
+
+        <!-- Filtros-->
+        <div class="flex justify-items-start gap-4 items-end h-auto w-full">
+          <!-- Buscador -->
+          <app-ui-input-field
+            label="Buscador de agente"
+            placeholder="Buscador de folio y cliente"
+            variant="search"
+            class="w-1/5 min-w-0"
+            [(ngModel)]="textoBusqueda"
+          ></app-ui-input-field>
+
+          <!-- Seleccionar estado -->
+          <app-ui-input-field
+            label="Estado"
+            placeholder="Seleccionar estatus"
+            variant="select"
+            [visualizarIcono]="false"
+            class="w-1/5 min-w-0"
+            [(ngModel)]="estadoSeleccionado"
+          ></app-ui-input-field>
+
+          <app-ui-input-field
+            label="Tipo"
+            placeholder="Seleccionar Tipo"
+            variant="select"
+            [visualizarIcono]="false"
+            class="w-1/5 min-w-0"
+            [(ngModel)]="serieSeleccionada"
+            [options]="tipoSeleccionado"
+          ></app-ui-input-field>
+
+          <!-- Fecha inicio y fin-->
+          <div class="flex gap-4">
+            <!-- Fecha inicio -->
+            <div class="flex flex-col gap-1">
+              <app-ui-tipografia variante="p-sm" texto="Fecha inicio"></app-ui-tipografia>
+              <input
+                type="date"
+                class="p-2.5 mt-2 w-full bg-gray-50 border border-neutral-200 rounded-sm cursor-pointer focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
+                [(ngModel)]="fechaInicio"
+              />
+            </div>
+            <!-- Fecha fin -->
+            <div class="flex flex-col gap-1">
+              <app-ui-tipografia variante="p-sm" texto="Fecha fin"></app-ui-tipografia>
+              <input
+                type="date"
+                class="p-2.5 mt-2 w-full bg-gray-50 border border-neutral-200 rounded-sm cursor-pointer focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
+                [(ngModel)]="fechaFin"
+              />
+            </div>
+          </div>
+
+          <!-- Botones -->
+          <div class="flex gap-4 justify-center items-center">
+            <app-ui-boton variante="cerrar" texto="Limpiar" (click)="limpiarFiltros()"></app-ui-boton>
+            <app-ui-boton variante="cerrar" texto="Buscar" (click)="aplicarFiltros()"></app-ui-boton>
+          </div>
+        </div>
+
+        <!-- Resumen de filtros activos -->
+        @if (hayFiltrosActivos) {
+        <div class="flex items-center gap-2 px-2">
+          <span class="text-xs text-gray-500">Filtros aplicados:</span>
+          <span class="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded-md">{{ resumenFiltros }}</span>
+          <button (click)="limpiarFiltros()" class="text-xs cursor-pointer text-blue-600 hover:text-blue-800 underline">
+            Limpiar todos
+          </button>
+        </div>
+        }
+      </div>
+
+      <div class="bg-white border border-neutral-200 w-full rounded-2xl p-2.5">
+        <div class="bg-white rounded-xl border border-neutral-200 overflow-hidden w-full flex flex-col h-[600px]">
+          <!-- Header - Fijo -->
+          <div class="flex-shrink-0">
+            <table class="custom-table w-full table-fixed">
+              <thead class="bg-gray-50 border-b border-neutral-200">
+                <tr>
+                  <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-[100px]">FOLIO</th>
+                  <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-[200px]">CLIENTE</th>
+                  <th class="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider w-[100px]">ESTADO</th>
+                  <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-[120px]">CREACIÓN</th>
+                  <th class="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider w-[120px]">SUBTOTAL</th>
+                  <th class="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider w-[100px]">IVA</th>
+                  <th class="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider w-[120px]">TOTAL</th>
+                  <th class="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider w-[150px]">ACCIONES</th>
+                </tr>
+              </thead>
+            </table>
+          </div>
+
+          <!-- Cuerpo de la tabla con scroll -->
+          <div class="overflow-auto flex-1">
+            <table class="custom-table w-full table-fixed">
+              <tbody class="divide-y divide-neutral-200">
+                @for (cot of cotizaciones(); track cot.idDocumento; let odd = $odd) {
+                <tr
+                  (click)="verDetalle(cot)"
+                  [class.bg-gray-50]="odd"
+                  [class.hover:bg-blue-50]="true"
+                  class="transition-colors cursor-pointer"
+                >
+                  <!-- FOLIO -->
+                  <td class="px-6 py-4 text-sm font-medium text-gray-900 w-[100px] truncate">
+                    {{ getFolioCompleto(cot) }}
+                  </td>
+
+                  <!-- CLIENTE -->
+                  <td class="px-6 py-4 text-sm text-gray-700 w-[200px] truncate" [title]="cot.razonSocial">
+                    {{ cot.razonSocial }}
+                  </td>
+
+                  <!-- ESTADO -->
+                  <td class="px-6 py-4 text-center w-[100px]">
+                    @if (cot.estado === 'Activa') {
+                    <span class="inline-flex items-center px-3 py-1.5 rounded-md text-xs font-bold bg-green-100 text-green-700">
+                      Activo
+                    </span>
+                    } @else if (cot.estado === 'Cancelada') {
+                    <span class="inline-flex items-center px-3 py-1.5 rounded-md text-xs font-bold bg-red-100 text-red-700">
+                      Cancelada
+                    </span>
+                    } @else {
+                    <span class="inline-flex items-center px-3 py-1.5 rounded-md text-xs font-bold bg-yellow-100 text-yellow-700">
+                      {{ cot.estado }}
+                    </span>
+                    }
+                  </td>
+
+                  <!-- CREACIÓN -->
+                  <td class="px-6 py-4 text-sm text-gray-700 w-[120px]">{{ formatDate(cot.fecha) }}</td>
+
+                  <!-- SUBTOTAL -->
+                  <td class="px-6 py-4 text-sm text-gray-700 text-right w-[120px]">
+                    {{ formatCurrency(cot.subtotal || 0) }}
+                  </td>
+
+                  <!-- IVA -->
+                  <td class="px-6 py-4 text-sm text-gray-700 text-right w-[100px]">
+                    {{ formatCurrency(cot.iva || 0) }}
+                  </td>
+
+                  <!-- TOTAL -->
+                  <td class="px-6 py-4 text-sm font-semibold text-gray-900 text-right w-[120px]">
+                    {{ formatCurrency(cot.total) }}
+                  </td>
+
+                  <!-- ACCIONES -->
+                  <td class="px-6 py-4 w-[150px]" (click)="$event.stopPropagation()">
+                    <div class="relative flex items-center justify-center gap-2">
+                      <!-- Botón Ver -->
+                      <button
+                        (click)="verDetalle(cot)"
+                        class="p-2 cursor-pointer text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        title="Ver detalle"
+                      >
+                        <app-ui-icono name="eye" size="size-4"></app-ui-icono>
+                      </button>
+
+                      <!-- Botón Editar (solo si está activa) -->
+                      @if (cot.estado === 'Activa') {
+                      <button
+                        (click)="editarCotizacion(cot.idDocumento)"
+                        class="p-2 cursor-pointer text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        title="Editar"
+                      >
+                        <app-ui-icono name="pencil" size="size-4"></app-ui-icono>
+                      </button>
+                      } @else {
+                      <button disabled class="p-2 text-gray-300 cursor-not-allowed rounded-lg" title="No se puede editar">
+                        <app-ui-icono name="pencil" size="size-4"></app-ui-icono>
+                      </button>
+                      }
+
+                      <!-- Boton de descargar -->
+                      <button
+                        (click)="toggleMenu(cot.idDocumento, $event)"
+                        class="p-2 cursor-pointer text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        title="Descargar"
+                      >
+                        <app-ui-icono name="arrow-down-tray" size="size-4"></app-ui-icono>
+                      </button>
+
+                      <!-- Menu Imprimir -->
+                      @if (menuAbiertoId() === cot.idDocumento) {
+                      <div
+                        class="absolute right-0 top-full mt-2 w-auto bg-white border border-neutral-200 rounded-xl shadow-sm z-[100] py-2 animate-in fade-in zoom-in duration-200"
+                      >
+                        <div class="relative group">
+                          <button
+                            (click)="descargarConIVA(cot.idDocumento)"
+                            class="w-full flex items-center cursor-pointer gap-3 py-2.5 px-4 text-sm hover:bg-blue-50 hover:text-blue-500 transition-colors"
+                          >
+                            <app-ui-icono name="arrow-long-right"></app-ui-icono>
+                            <app-ui-tipografia
+                              variante="caption-sm"
+                              texto="Con IVA"
+                              color="text-neutral-700"
+                              class="whitespace-nowrap"
+                            ></app-ui-tipografia>
+                          </button>
+                        </div>
+
+                        <div class="relative group">
+                          <button
+                            (click)="descargarSinIVA(cot.idDocumento)"
+                            class="w-full flex items-center cursor-pointer gap-3 text-sm py-2.5 px-4 hover:bg-blue-50 hover:text-blue-500 transition-colors"
+                          >
+                            <app-ui-icono name="arrow-turn-down-right"></app-ui-icono>
+                            <app-ui-tipografia
+                              variante="caption-sm"
+                              texto="Sin IVA"
+                              color="text-neutral-700"
+                              class="whitespace-nowrap"
+                            ></app-ui-tipografia>
+                          </button>
+                        </div>
+
+                        <div class="relative group">
+                          <button
+                            (click)="descargarOrdenCompra(cot.idDocumento)"
+                            class="w-full flex items-center cursor-pointer gap-3 text-sm py-2.5 px-4 hover:bg-blue-50 hover:text-blue-500 transition-colors"
+                          >
+                            <app-ui-icono name="arrow-turn-down-right"></app-ui-icono>
+                            <app-ui-tipografia
+                              variante="caption-sm"
+                              texto="Orden Compra"
+                              color="text-neutral-700"
+                              class="whitespace-nowrap"
+                            ></app-ui-tipografia>
+                          </button>
+                        </div>
+                      </div>
+                      }
+                    </div>
+                  </td>
+                </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Footer / Paginación - Fijo -->
+          <div class="table-footer flex-shrink-0 px-6 py-4 border-t border-neutral-200 bg-gray-50 flex items-center justify-between">
+            <span class="text-sm text-gray-600">
+              Mostrando {{ ((currentPage() - 1) * pageSize()) + 1 }}–{{ Math.min(currentPage() * pageSize(), totalRecords()) }}
+              de {{ totalRecords() }} resultados
+            </span>
+
+            <div class="flex items-center gap-6">
+              <div class="flex items-center gap-2">
+                <span class="text-sm text-gray-600">Filas por página:</span>
+                <select
+                  (change)="cambiarTamanoPagina($event)"
+                  [value]="pageSize()"
+                  class="px-1.5 py-1 text-sm border border-neutral-200 rounded-md bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+                >
+                  <option value="10">10</option>
+                  <option value="20">20</option>
+                  <option value="50">50</option>
+                  <option value="100">100</option>
+                </select>
+              </div>
+
+              <div class="navegacion-paginacion flex items-center gap-3">
+                <button
+                  (click)="cambiarPaginaAnterior()"
+                  [disabled]="currentPage() === 1"
+                  class="p-1 bg-white border border-neutral-200 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="Página anterior"
+                >
+                  <app-ui-icono name="chevron-left" size="size-4"></app-ui-icono>
+                </button>
+
+                <span class="indicador-paginacion text-sm font-medium text-gray-700">
+                  {{ currentPage() }} / {{ totalPages() }}
+                </span>
+
+                <button
+                  (click)="cambiarPaginaSiguiente()"
+                  [disabled]="currentPage() === totalPages()"
+                  class="p-1 bg-white border border-neutral-200 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="Página siguiente"
+                >
+                  <app-ui-icono name="chevron-right" size="size-4"></app-ui-icono>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Empty State - Sin resultados -->
+    @if (!loading() && cotizaciones().length === 0 && hayFiltrosActivos) {
+      <!-- header + filtro -->
+      <div class="flex flex-col gap-4 w-full">
+        <!-- Header con componente reutilizable -->
+        <app-ui-header
+          titulo="Cotizaciones"
+          descripcion="Gestión de cotizaciones desde CONTPAQI"
+          buttonLabel="Crear cotización"
+          tipoSeccion="encabezadoPagina"
+          (buttonClick)="abrirModalCrear()"
+        ></app-ui-header>
+
+        <!-- Filtros-->
+        <div class="flex justify-items-start gap-4 items-end h-auto w-full">
+          <!-- Buscador -->
+          <app-ui-input-field
+            label="Buscador de agente"
+            placeholder="Buscador de folio y cliente"
+            variant="search"
+            class="w-1/5 min-w-0"
+            [(ngModel)]="textoBusqueda"
+          ></app-ui-input-field>
+
+          <!-- Seleccionar estado -->
+          <app-ui-input-field
+            label="Estado"
+            placeholder="Seleccionar estatus"
+            variant="select"
+            [visualizarIcono]="false"
+            class="w-1/5 min-w-0"
+            [(ngModel)]="estadoSeleccionado"
+          ></app-ui-input-field>
+
+          <app-ui-input-field
+            label="Tipo"
+            placeholder="Seleccionar Tipo"
+            variant="select"
+            [visualizarIcono]="false"
+            class="w-1/5 min-w-0"
+            [(ngModel)]="serieSeleccionada"
+            [options]="tipoSeleccionado"
+          ></app-ui-input-field>
+
+          <!-- Fecha inicio y fin-->
+          <div class="flex gap-4">
+            <!-- Fecha inicio -->
+            <div class="flex flex-col gap-1">
+              <app-ui-tipografia variante="p-sm" texto="Fecha inicio"></app-ui-tipografia>
+              <input
+                type="date"
+                class="p-2.5 mt-2 w-full bg-gray-50 border border-neutral-200 rounded-sm cursor-pointer focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
+                [(ngModel)]="fechaInicio"
+              />
+            </div>
+            <!-- Fecha fin -->
+            <div class="flex flex-col gap-1">
+              <app-ui-tipografia variante="p-sm" texto="Fecha fin"></app-ui-tipografia>
+              <input
+                type="date"
+                class="p-2.5 mt-2 w-full bg-gray-50 border border-neutral-200 rounded-sm cursor-pointer focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
+                [(ngModel)]="fechaFin"
+              />
+            </div>
+          </div>
+
+          <!-- Botones -->
+          <div class="flex gap-4 justify-center items-center">
+            <app-ui-boton variante="cerrar" texto="Limpiar" (click)="limpiarFiltros()"></app-ui-boton>
+            <app-ui-boton variante="cerrar" texto="Buscar" (click)="aplicarFiltros()"></app-ui-boton>
+          </div>
+        </div>
+
+        <!-- Resumen de filtros activos -->
+        @if (hayFiltrosActivos) {
+        <div class="flex items-center gap-2 px-2">
+          <span class="text-xs text-gray-500">Filtros aplicados:</span>
+          <span class="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded-md">{{ resumenFiltros }}</span>
+          <button (click)="limpiarFiltros()" class="text-xs cursor-pointer text-blue-600 hover:text-blue-800 underline">
+            Limpiar todos
+          </button>
+        </div>
+        }
+      </div>
+      
+      <div class="bg-white border border-neutral-200 w-full rounded-2xl p-2.5">
+        <div class="bg-white rounded-xl border border-neutral-200 overflow-hidden w-full">
+          <div class="flex-1 min-h-[400px] p-8 flex items-center justify-center">
+            <div class="flex flex-col gap-6 justify-center items-center max-w-md text-center">
+              <div class="flex items-center justify-center bg-amber-50 rounded-full size-16">
+                <app-ui-icono name="magnifying-glass" size="size-8" color="text-amber-600"></app-ui-icono>
+              </div>
+              <div class="flex flex-col gap-2">
+                <span class="text-xl font-semibold text-gray-900">No se encontraron resultados</span>
+                <span class="text-base font-normal text-gray-500">
+                  No hay cotizaciones que coincidan con los filtros aplicados.
+                </span>
+              </div>
+              <div class="flex gap-3 mt-2">
+                <app-ui-boton variante="cerrar" texto="Limpiar filtros" (click)="limpiarFiltros()"></app-ui-boton>
+                <app-ui-boton texto="Crear cotización" (alClickear)="abrirModalCrear()"></app-ui-boton>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Empty State - Sin datos iniciales (sin filtros) -->
+    @if (!loading() && cotizaciones().length === 0 && !hayFiltrosActivos) {
+      <!-- header + filtro -->
+      <div class="flex flex-col gap-4 w-full">
+        <!-- Header con componente reutilizable -->
+        <app-ui-header
+          titulo="Cotizaciones"
+          descripcion="Gestión de cotizaciones desde CONTPAQI"
+          buttonLabel="Crear cotización"
+          tipoSeccion="encabezadoPagina"
+          (buttonClick)="abrirModalCrear()"
+        ></app-ui-header>
+
+        <!-- Filtros-->
+        <div class="flex justify-items-start gap-4 items-end h-auto w-full">
+          <!-- Buscador -->
+          <app-ui-input-field
+            label="Buscador de agente"
+            placeholder="Buscador de folio y cliente"
+            variant="search"
+            class="w-1/5 min-w-0"
+            [(ngModel)]="textoBusqueda"
+          ></app-ui-input-field>
+
+          <!-- Seleccionar estado -->
+          <app-ui-input-field
+            label="Estado"
+            placeholder="Seleccionar estatus"
+            variant="select"
+            [visualizarIcono]="false"
+            class="w-1/5 min-w-0"
+            [(ngModel)]="estadoSeleccionado"
+          ></app-ui-input-field>
+
+          <app-ui-input-field
+            label="Tipo"
+            placeholder="Seleccionar Tipo"
+            variant="select"
+            [visualizarIcono]="false"
+            class="w-1/5 min-w-0"
+            [(ngModel)]="serieSeleccionada"
+            [options]="tipoSeleccionado"
+          ></app-ui-input-field>
+
+          <!-- Fecha inicio y fin-->
+          <div class="flex gap-4">
+            <!-- Fecha inicio -->
+            <div class="flex flex-col gap-1">
+              <app-ui-tipografia variante="p-sm" texto="Fecha inicio"></app-ui-tipografia>
+              <input
+                type="date"
+                class="p-2.5 mt-2 w-full bg-gray-50 border border-neutral-200 rounded-sm cursor-pointer focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
+                [(ngModel)]="fechaInicio"
+              />
+            </div>
+            <!-- Fecha fin -->
+            <div class="flex flex-col gap-1">
+              <app-ui-tipografia variante="p-sm" texto="Fecha fin"></app-ui-tipografia>
+              <input
+                type="date"
+                class="p-2.5 mt-2 w-full bg-gray-50 border border-neutral-200 rounded-sm cursor-pointer focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
+                [(ngModel)]="fechaFin"
+              />
+            </div>
+          </div>
+
+          <!-- Botones -->
+          <div class="flex gap-4 justify-center items-center">
+            <app-ui-boton variante="cerrar" texto="Limpiar" (click)="limpiarFiltros()"></app-ui-boton>
+            <app-ui-boton variante="cerrar" texto="Buscar" (click)="aplicarFiltros()"></app-ui-boton>
+          </div>
+        </div>
+
+        <!-- Resumen de filtros activos -->
+        @if (hayFiltrosActivos) {
+        <div class="flex items-center gap-2 px-2">
+          <span class="text-xs text-gray-500">Filtros aplicados:</span>
+          <span class="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded-md">{{ resumenFiltros }}</span>
+          <button (click)="limpiarFiltros()" class="text-xs cursor-pointer text-blue-600 hover:text-blue-800 underline">
+            Limpiar todos
+          </button>
+        </div>
+        }
+      </div>
+      <div class="bg-white border border-neutral-200 w-full rounded-2xl p-2.5">
+        <div class="bg-white rounded-xl border border-neutral-200 overflow-hidden w-full">
+          <div class="flex-1 min-h-[400px] p-8 flex items-center justify-center">
+            <div class="flex flex-col gap-6 justify-center items-center max-w-md text-center">
+              <div class="flex items-center justify-center bg-blue-50 rounded-full size-16">
+                <app-ui-icono name="document-text" size="size-8" color="text-blue-600"></app-ui-icono>
+              </div>
+              <div class="flex flex-col gap-2">
+                <span class="text-xl font-semibold text-gray-900">No hay cotizaciones</span>
+                <span class="text-base font-normal text-gray-500">
+                  Comienza creando tu primera cotización para gestionar tus ventas.
+                </span>
+              </div>
+              <app-ui-boton texto="Crear cotización" (alClickear)="abrirModalCrear()"></app-ui-boton>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</div>
+
+<!-- Dialog de Vista/Detalle -->
+@if (showDetailModal()) {
+<app-dialog-vista-documentos
+  [idDocumento]="idDocumentoSeleccionado()"
+  (cerrar)="cerrarModalDetalle()"
+  (solicitudCancelacion)="onSolicitudCancelacion($event)"
+  (solicitudEliminacion)="onSolicitudEliminacion($event)"
+  (cancelacionCompletada)="onCancelacionCompletada()"
+></app-dialog-vista-documentos>
+}
+
+<!-- Modal de Cancelación -->
+@if (mostrarAlertaCancelacion()) {
+<app-ui-dialog-alert
+  tipoAlerta="advertencia"
+  titulo="¿Estás seguro de que deseas cancelar esta cotización?"
+  parrafo="La cotización será cancelada. Esta acción no se puede deshacer."
+  textoBotonCerrar="Volver"
+  textoBotonPrimario="Cancelar cotización"
+  [visualizarInput]="true"
+  labelInput="Motivo de cancelación"
+  [inputObligatorio]="true"
+  placeholder="Escribe el motivo de cancelación..."
+  (clicBotonSecundario)="cerrarAlertas()"
+  (clicBotonPrimario)="confirmarCancelacion()"
+  (valueChange)="onMotivoChange($event)"
+></app-ui-dialog-alert>
+}
+
+<!-- Modal de Eliminación -->
+@if (mostrarAlertaEliminacion()) {
+<app-ui-dialog-alert
+  tipoAlerta="eliminar"
+  titulo="¿Estás seguro de que deseas eliminar esta cotización?"
+  parrafo="La cotización será eliminada. Esta acción no se puede deshacer."
+  textoBotonCerrar="No, conservar"
+  textoBotonPrimario="Sí, eliminar"
+  [visualizarInput]="false"
+  (clicBotonSecundario)="cerrarAlertas()"
+></app-ui-dialog-alert>
+}
+
+<!-- Tooltip de notificación -->
+@if (mostrarNotificacion() && notificacion(); as notif) {
+<div class="fixed bottom-0 left-1/2 transform -translate-x-1/2 mb-4 z-50">
+  <app-alert
+    #notificacionAlert
+    [tipo]="notif.tipo"
+    [titulo]="notif.titulo"
+    [descripcion]="notif.mensaje"
+    [cerrable]="true"
+    [autoCerrar]="notif.duracion || 3000"
+    (onClose)="cerrarNotificacion()"
+  ></app-alert>
+</div>
+}

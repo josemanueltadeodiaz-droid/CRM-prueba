@@ -1,0 +1,44 @@
+<button 
+  [type]="tipo"
+  [ngClass]="obtenerClasesTailwind()"
+  [ngStyle]="estilosPersonalizados"
+  [disabled]="estaInactivo()"
+  (click)="manejarClick($event)">
+  
+  <!-- Icono de carga (spinner) -->
+  @if (estaCargando) {
+    <app-ui-icono
+      name="arrow-path"
+      [size]="tamanoIcono"
+      [color]="colorIconoClase"
+      class="animate-spin"
+    />
+  }
+
+  <!-- Icono personalizado con innerHTML (tiene prioridad sobre UiIconComponent) -->
+  @if (!estaCargando && iconoPersonalizado) {
+    <span 
+      [innerHTML]="iconoSanitizado"
+      class="inline-flex shrink-0 [&>svg]:w-full [&>svg]:h-full"
+      [ngClass]="tamanoIcono"
+      [style.color]="colorIcono"
+    >
+    </span>
+  }
+
+  <!-- Icono usando UiIconComponent -->
+  @if (!estaCargando && !iconoPersonalizado && debeMostrarIcono) {
+    <app-ui-icono
+      [name]="nombreIconoFinal"
+      [size]="tamanoIcono"
+      [color]="colorIconoClase"
+      [style.color]="colorIcono"
+    />
+  }
+
+  <!-- Texto del botón (solo si tiene contenido y visualizarTexto es true) -->
+  @if (texto && texto.trim() && visualizarTexto) {
+    <span>{{ obtenerTexto() }}</span>
+  }
+  
+</button>

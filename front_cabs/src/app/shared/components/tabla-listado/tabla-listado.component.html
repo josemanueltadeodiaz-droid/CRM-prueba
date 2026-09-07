@@ -1,0 +1,80 @@
+<div class="contenedor-tabla" [ngClass]="clasePersonalizada">
+  <!-- Indicador de carga -->
+  @if (cargando) {
+  <div class="estado-tabla">
+    <p>{{ mensajeCargando }}</p>
+  </div>
+  }
+  <!-- Tabla -->
+  @if (!cargando) {
+  <table class="tabla-listado">
+    <thead class="encabezado-tabla">
+      <tr>
+
+        @if (mostrarIndice) {
+        <th class="celda-encabezado">#</th>
+        }
+        @for (columna of columnas; track $index) {
+        <th class="celda-encabezado" [style.width]="columna.ancho" [style.text-align]="obtenerAlineacion(columna)">
+          {{ columna.encabezado }}
+        </th>
+        }
+        @if (acciones.length > 0) {
+        <th class="celda-encabezado">Acciones</th>
+        }
+      </tr>
+    </thead>
+    <tbody class="cuerpo-tabla">
+      <!-- Filas de datos con @for -->
+      @for (item of datosFiltrados; track $index) {
+      <tr class="fila-datos" [ngClass]="obtenerClaseFila(item)" (click)="alManejarFilaClick(item)"
+        (dblclick)="alManejarFilaDobleClick(item)">
+
+        @if (mostrarIndice) {
+        <td class="celda-dato" style="text-align: center;">
+          {{ $index + 1 }}
+        </td>
+        }
+        @for (columna of columnas; track $index) {
+        <td class="celda-dato" [style.text-align]="obtenerAlineacion(columna)">
+          <!-- Si tiene plantilla -->
+          @if (columna.plantilla) {
+          <ng-container *ngTemplateOutlet="columna.plantilla; 
+                      context: { $implicit: item, dato: obtenerValorCelda(item, columna) }">
+          </ng-container>
+          } @else {
+          {{ obtenerValorCelda(item, columna) }}
+          }
+        </td>
+        }
+        <!-- Acciones -->
+        @if (acciones.length > 0) {
+        <td class="celda-dato">
+          <div class="contenedor-acciones">
+            @for (accion of acciones; track $index) {
+            @if (mostrarAccion(accion, item)) {
+            <button class="boton-accion" [ngClass]="accion.clase" (click)="ejecutarAccion(accion, item, $event)">
+              @if (accion.icono) {
+              <ng-container *ngTemplateOutlet="accion.icono"></ng-container>
+              }
+              {{ accion.etiqueta }}
+            </button>
+            }
+            }
+          </div>
+        </td>
+        }
+      </tr>
+      } @empty {
+      <!-- Mensaje sin datos (cuando el filtro o datos están vacíos) -->
+      <tr>
+        <td class="celda-sin-datos"
+          [attr.colspan]="columnas.length + (mostrarIndice ? 1 : 0) + (acciones.length > 0 ? 1 : 0)">
+          {{ mensajeSinDatos }}
+        </td>
+      </tr>
+      }
+    </tbody>
+  </table>
+  }
+</div>

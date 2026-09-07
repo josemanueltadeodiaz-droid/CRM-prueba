@@ -1,0 +1,37 @@
+<div class="bg-white mb-4" [class.fondo-blanco]="fondoBlanco" [class.fondo-transparente]="!fondoBlanco">
+    <div class="tabs-navegacion">
+        <nav class="tabs-list">
+            @for (tab of tabs; track tab.id) {
+                @if (usarRouterLink) {
+                    <!-- Con routerLink (para otros usos) -->
+                    <a 
+                        [routerLink]="tab.habilitado ? tab.ruta : null" 
+                        routerLinkActive="activa"
+                        [class.deshabilitada]="!tab.habilitado"
+                        class="tab-item"
+                        (click)="!tab.habilitado ? $event.preventDefault() : seleccionarTab(tab, $event)">
+                        
+                        <span class="tab-nombre">{{ tab.nombreTab }}</span>
+                    </a>
+                } @else {
+                    <!-- Sin routerLink (para modales) -->
+                    <button 
+                        type="button"
+                        [class.activa]="tabActivaId === tab.id"
+                        [class.deshabilitada]="!tab.habilitado"
+                        class="tab-item"
+                        (click)="seleccionarTab(tab)">
+                        
+                        <span class="tab-nombre">{{ tab.nombreTab }}</span>
+                    </button>
+                }
+            } @empty {
+                <div class="no-tabs-message">
+                    No hay tabs disponibles
+                </div>
+            }
+        </nav>
+        
+        <div class="tab-indicador"></div>
+    </div>
+</div>

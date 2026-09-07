@@ -1,0 +1,763 @@
+@if (visible()) {
+  <div class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40" (click)="cerrarPanel()"></div>
+}
+
+<div
+  class="fixed right-0 top-0 bottom-0 w-full md:w-2/3 lg:w-[550px] z-50 transform transition-transform duration-300 ease-out flex flex-col bg-white rounded-2xl m-2 overflow-hidden shadow-2xl"
+  [class.translate-x-full]="!visible()" [class.translate-x-0]="visible()"
+  (click)="$event.stopPropagation()">
+
+  <app-header-modal [titulo]="getFolio()" descripcion="Detalles de orden de servicio" (cerrarModal)="cerrarPanel()"></app-header-modal>
+
+  <!-- SKELETON -->
+  @if (cargando()) {
+  <div class="flex-1 flex flex-col gap-5 p-5 overflow-y-auto animate-pulse">
+    <div class="flex flex-col gap-3 border-b border-zinc-100 pb-5">
+      <div class="h-3 bg-slate-200 rounded w-1/4 mb-1"></div>
+      @for(_ of [1,2,3,4,5,6]; track _) {
+        <div class="grid grid-cols-2 gap-4">
+          <div class="h-4 bg-slate-200 rounded w-3/4"></div>
+          <div class="h-4 bg-slate-200 rounded w-1/2"></div>
+        </div>
+      }
+    </div>
+    <div class="flex flex-col gap-3 border-b border-zinc-100 pb-5">
+      <div class="h-3 bg-slate-200 rounded w-1/5 mb-1"></div>
+      @for(_ of [1,2]; track _) {
+        <div class="grid grid-cols-2 gap-4">
+          <div class="h-4 bg-slate-200 rounded w-3/4"></div>
+          <div class="h-4 bg-slate-200 rounded w-1/2"></div>
+        </div>
+      }
+    </div>
+    <div class="flex flex-col gap-3 border-b border-zinc-100 pb-5">
+      <div class="h-3 bg-slate-200 rounded w-1/5 mb-1"></div>
+      <div class="h-48 bg-slate-200 rounded-xl w-full"></div>
+    </div>
+    <div class="flex flex-col gap-3 border-b border-zinc-100 pb-5">
+      <div class="h-3 bg-slate-200 rounded w-1/4 mb-1"></div>
+      @for(_ of [1,2,3]; track _) { <div class="h-10 bg-slate-200 rounded w-full"></div> }
+    </div>
+    <div class="flex flex-col gap-3 pb-5">
+      <div class="h-3 bg-slate-200 rounded w-1/3 mb-1"></div>
+      <div class="h-32 bg-slate-200 rounded-lg w-full"></div>
+    </div>
+  </div>
+  }
+
+  <!-- ERROR -->
+  @if (errorDeConexion()) {
+  <div class="flex-1 flex flex-col items-center justify-center gap-4 p-8">
+    <div class="text-red-500 text-center">
+      <p class="text-lg font-medium">Error de conexión</p>
+      <p class="text-sm">No se pudieron cargar los datos. Intente nuevamente.</p>
+    </div>
+    <app-ui-boton variante="primario" texto="Reintentar" (click)="cargarDetalleOrden()"></app-ui-boton>
+  </div>
+  }
+
+  <!-- CONTENIDO -->
+  @if (monstrarDatos() && orden) {
+  <div class="flex-1 flex flex-col overflow-y-auto overflow-x-hidden">
+    <div class="flex flex-col">
+
+      <!-- Info general -->
+      <section class="flex flex-col gap-3 border-b border-zinc-100 py-4">
+        <div class="grid grid-cols-2 items-center px-4">
+          <p class="text-sm text-slate-500 font-medium">Estado orden</p>
+          <span class="inline-flex w-fit px-2.5 py-1 rounded-md text-xs font-bold {{ estadoClase() }}">
+            {{ estadoOrdenServicio() }}
+          </span>
+        </div>
+        <div class="grid grid-cols-2 items-center px-4">
+          <p class="text-sm text-slate-500 font-medium">Estado factura</p>
+          <span class="inline-flex w-fit px-2.5 py-1 rounded-md text-xs font-bold {{ estadoFacturaClase() }}">
+            {{ estadoFacturaTexto() }}
+          </span>
+        </div>
+        <div class="grid grid-cols-2 items-center px-4">
+          <p class="text-sm text-slate-500 font-medium">Tipo de atención</p>
+          <span class="inline-flex w-fit px-2.5 py-1 rounded-md text-xs font-bold {{ tipoAtencionClase() }}">
+            {{ tipoAtencion() }}
+          </span>
+        </div>
+        <div class="grid grid-cols-2 items-center px-4">
+          <p class="text-sm text-slate-500 font-medium">Fecha creación</p>
+          <p class="text-sm text-slate-800 font-medium">{{ formatearFecha(orden.fechaCreacion) }}</p>
+        </div>
+        <div class="grid grid-cols-2 items-center px-4">
+          <p class="text-sm text-slate-500 font-medium">Fecha inicio</p>
+          <p class="text-sm text-slate-800 font-medium">{{ formatearFecha(orden.fechaInicio) }}</p>
+        </div>
+        <div class="grid grid-cols-2 items-center px-4">
+          <p class="text-sm text-slate-500 font-medium">Fecha finalización</p>
+          <p class="text-sm text-slate-800 font-medium">{{ formatearFecha(orden.fechaFinalizacion) }}</p>
+        </div>
+        <div class="grid grid-cols-2 items-center px-4">
+          <p class="text-sm text-slate-500 font-medium">Total horas</p>
+          <p class="text-sm text-slate-800 font-medium">{{ getTotalHoras() }}</p>
+        </div>
+      </section>
+
+      <!-- Solicitante y Destinatario (editable) -->
+      <section class="flex flex-col gap-3 border-b border-zinc-100 py-4">
+        <div class="flex items-center justify-between px-4">
+          <span class="text-sm font-semibold tracking-wide text-slate-800">Solicitante y Destinatario</span>
+          @if (!editandoSolicitante() && !esOrdenFinalizada()) {
+            <button
+              class="flex items-center gap-1 px-2 py-1 text-xs text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+              (click)="abrirEdicionSolicitante()">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+              Editar
+            </button>
+          }
+        </div>
+
+        @if (!editandoSolicitante()) {
+          <div class="grid grid-cols-2 items-center px-4">
+            <p class="text-sm text-slate-500 font-medium">Nombre solicitante</p>
+            <p class="text-sm text-slate-800 font-medium">{{ orden.nombreSolicitante || '—' }}</p>
+          </div>
+          <div class="grid grid-cols-2 items-center px-4">
+            <p class="text-sm text-slate-500 font-medium">Contacto solicitante</p>
+            <p class="text-sm text-slate-800 font-medium">{{ orden.contactoSolicitante || '—' }}</p>
+          </div>
+          <div class="grid grid-cols-2 items-center px-4">
+            <p class="text-sm text-slate-500 font-medium">Nombre destinatario</p>
+            <p class="text-sm text-slate-800 font-medium">{{ orden.nombreDestinatario || '—' }}</p>
+          </div>
+          <div class="grid grid-cols-2 items-center px-4">
+            <p class="text-sm text-slate-500 font-medium">Contacto destinatario</p>
+            <p class="text-sm text-slate-800 font-medium">{{ orden.contactoDestinatario || '—' }}</p>
+          </div>
+        } @else {
+          <div class="flex flex-col gap-3 px-4">
+            <div class="grid grid-cols-2 gap-3">
+              <div class="flex flex-col gap-1">
+                <label class="text-xs text-slate-500 font-medium">Nombre solicitante</label>
+                <input type="text" [(ngModel)]="solicitanteEdit.nombreSolicitante"
+                  placeholder="Nombre del solicitante"
+                  class="p-2 bg-gray-50 border border-neutral-200 rounded-md text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none" />
+              </div>
+              <div class="flex flex-col gap-1">
+                <label class="text-xs text-slate-500 font-medium">Contacto solicitante</label>
+                <input type="text" [(ngModel)]="solicitanteEdit.contactoSolicitante"
+                  placeholder="Teléfono o correo"
+                  class="p-2 bg-gray-50 border border-neutral-200 rounded-md text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none" />
+              </div>
+              <div class="flex flex-col gap-1">
+                <label class="text-xs text-slate-500 font-medium">Nombre destinatario</label>
+                <input type="text" [(ngModel)]="solicitanteEdit.nombreDestinatario"
+                  placeholder="Nombre del destinatario"
+                  class="p-2 bg-gray-50 border border-neutral-200 rounded-md text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none" />
+              </div>
+              <div class="flex flex-col gap-1">
+                <label class="text-xs text-slate-500 font-medium">Contacto destinatario</label>
+                <input type="text" [(ngModel)]="solicitanteEdit.contactoDestinatario"
+                  placeholder="Teléfono o correo"
+                  class="p-2 bg-gray-50 border border-neutral-200 rounded-md text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none" />
+              </div>
+            </div>
+            <div class="flex gap-2 justify-end">
+              <button
+                class="px-3 py-1.5 text-xs text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors"
+                (click)="cancelarEdicionSolicitante()">Cancelar</button>
+              <button
+                class="px-3 py-1.5 text-xs text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors disabled:opacity-50"
+                [disabled]="guardandoSolicitante()"
+                (click)="guardarSolicitante()">
+                {{ guardandoSolicitante() ? 'Guardando...' : 'Guardar' }}
+              </button>
+            </div>
+          </div>
+        }
+      </section>
+
+      <!-- Credenciales Escritas (editable) -->
+      <section class="flex flex-col gap-3 border-b border-zinc-100 py-4">
+        <div class="flex items-center justify-between px-4">
+          <span class="text-sm font-semibold tracking-wide text-slate-800">Credenciales Escritas</span>
+          @if (!editandoCredenciales() && !esOrdenFinalizada()) {
+            <button
+              class="flex items-center gap-1 px-2 py-1 text-xs text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+              (click)="abrirEdicionCredenciales()">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+              Cambiar credenciales
+            </button>
+          }
+        </div>
+
+        @if (!editandoCredenciales()) {
+          <div class="mx-4 p-3 bg-gray-50 rounded-lg border border-zinc-200">
+            @if(orden.credencialesEscritas) {
+              <p class="text-sm text-slate-700 leading-relaxed font-mono">{{ orden.credencialesEscritas }}</p>
+            } @else {
+              <p class="text-sm text-slate-400 italic">Sin credenciales registradas</p>
+            }
+          </div>
+        } @else {
+          <div class="flex flex-col gap-3 px-4">
+            <div class="grid grid-cols-2 gap-3">
+              <div class="flex flex-col gap-1">
+                <label class="text-xs text-slate-500 font-medium">TeamViewer ID</label>
+                <input type="text" [(ngModel)]="credencialesIdEdit"
+                  placeholder="ID de TeamViewer"
+                  class="p-2 bg-gray-50 border border-neutral-200 rounded-md text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none" />
+              </div>
+              <div class="flex flex-col gap-1">
+                <label class="text-xs text-slate-500 font-medium">Password</label>
+                <input type="text" [(ngModel)]="credencialesPasswordEdit"
+                  placeholder="Contraseña"
+                  class="p-2 bg-gray-50 border border-neutral-200 rounded-md text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none" />
+              </div>
+            </div>
+            @if(credencialesIdEdit || credencialesPasswordEdit) {
+              <p class="text-xs text-slate-500 bg-slate-50 rounded-md px-3 py-2 border border-slate-200">
+                Vista previa: <span class="font-mono text-slate-700">TeamViewer ID: {{ credencialesIdEdit }}, password: {{ credencialesPasswordEdit }}</span>
+              </p>
+            }
+            <div class="flex gap-2 justify-end">
+              <button
+                class="px-3 py-1.5 text-xs text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors"
+                (click)="cancelarEdicionCredenciales()">Cancelar</button>
+              <button
+                class="px-3 py-1.5 text-xs text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors disabled:opacity-50"
+                [disabled]="guardandoCredenciales() || !credencialesIdEdit.trim()"
+                (click)="guardarCredenciales()">
+                {{ guardandoCredenciales() ? 'Guardando...' : 'Guardar' }}
+              </button>
+            </div>
+          </div>
+        }
+      </section>
+
+      <!-- Cliente (editable) -->
+      <section class="flex flex-col gap-3 border-b border-zinc-100 py-4">
+        <div class="flex items-center justify-between px-4">
+          <span class="text-sm font-semibold tracking-wide text-slate-800">Cliente</span>
+        </div>
+
+        @if (!editandoCliente()) {
+          <!-- Skeleton mientras carga -->
+          @if (cargandoCliente()) {
+            <div class="mx-4 flex items-center gap-3 p-3 bg-gray-50 rounded-xl animate-pulse">
+              <div class="w-10 h-10 rounded-full bg-slate-200 shrink-0"></div>
+              <div class="flex flex-col gap-1.5 flex-1">
+                <div class="h-3.5 bg-slate-200 rounded w-3/5"></div>
+                <div class="h-3 bg-slate-200 rounded w-2/5"></div>
+              </div>
+            </div>
+          } @else if (datosCliente()) {
+            <!-- Tarjeta del cliente -->
+            <div class="mx-4 flex items-start gap-3 p-3 bg-blue-50 border border-blue-100 rounded-xl">
+              <!-- Avatar con iniciales -->
+              <div class="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0 shadow-sm {{ getColorAvatar(datosCliente()!.nombre) }}">
+                {{ getIniciales(datosCliente()!.nombre) }}
+              </div>
+              <!-- Datos -->
+              <div class="flex flex-col gap-0.5 flex-1 min-w-0">
+                <p class="text-sm font-semibold text-slate-800 truncate">{{ datosCliente()!.nombre }}</p>
+                <p class="text-xs text-slate-500">RFC: <span class="font-medium text-slate-700">{{ datosCliente()!.rfc || '—' }}</span></p>
+                @if (datosCliente()!.email) {
+                  <p class="text-xs text-slate-500 truncate">✉ {{ datosCliente()!.email }}</p>
+                }
+                @if (datosCliente()!.telefono) {
+                  <p class="text-xs text-slate-500">📞 {{ datosCliente()!.telefono }}</p>
+                }
+              </div>
+              <!-- Botón editar -->
+              @if (!esOrdenFinalizada()) {
+                <button
+                  class="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-100 rounded transition-colors shrink-0"
+                  title="Cambiar cliente"
+                  (click)="abrirEdicionCliente()">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                  </svg>
+                </button>
+              }
+            </div>
+          } @else {
+            <!-- Sin cliente -->
+            <div class="mx-4 flex items-center justify-between p-3 bg-gray-50 border border-zinc-200 rounded-xl">
+              <p class="text-sm text-slate-400 italic">Sin información de cliente</p>
+              @if (!esOrdenFinalizada()) {
+                <button
+                  class="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors shrink-0"
+                  title="Asignar cliente"
+                  (click)="abrirEdicionCliente()">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                  </svg>
+                </button>
+              }
+            </div>
+          }
+        } @else {
+          <div class="flex flex-col gap-2 px-4">
+            <p class="text-sm text-slate-500 font-medium">Buscar cliente</p>
+            <div class="relative">
+              <input
+                type="text"
+                [(ngModel)]="busquedaClienteEdit"
+                (input)="onBusquedaClienteInput()"
+                placeholder="Nombre o RFC del cliente..."
+                class="w-full p-2.5 bg-gray-50 border border-neutral-200 rounded-md text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"/>
+              @if(loadingClientesEdit()) {
+                <div class="absolute right-3 top-1/2 -translate-y-1/2">
+                  <svg class="animate-spin w-4 h-4 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                  </svg>
+                </div>
+              }
+            </div>
+
+            @if(clientesResultados().length > 0) {
+              <div class="max-h-40 overflow-y-auto border border-neutral-200 rounded-md bg-white shadow-sm">
+                @for(c of clientesResultados(); track c.idCliente) {
+                  <button
+                    class="w-full text-left px-3 py-2 hover:bg-blue-50 border-b border-zinc-100 last:border-b-0"
+                    (click)="seleccionarClienteEdit(c)">
+                    <p class="text-sm font-medium text-slate-800">{{ c.razonSocial }}</p>
+                    <p class="text-xs text-slate-400">#{{ c.idCliente }}{{ c.rfc ? ' · ' + c.rfc : '' }}</p>
+                  </button>
+                }
+              </div>
+            }
+
+            @if(clienteEditId > 0) {
+              <p class="text-xs text-blue-600 font-medium">Cliente seleccionado: #{{ clienteEditId }} — {{ busquedaClienteEdit }}</p>
+            }
+
+            <div class="flex gap-2 justify-end">
+              <button
+                class="px-3 py-1.5 text-xs text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors"
+                (click)="cancelarEdicionCliente()">Cancelar</button>
+              <button
+                class="px-3 py-1.5 text-xs text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors disabled:opacity-50"
+                [disabled]="guardandoCliente() || clienteEditId <= 0"
+                (click)="guardarCliente()">
+                {{ guardandoCliente() ? 'Guardando...' : 'Guardar' }}
+              </button>
+            </div>
+          </div>
+        }
+      </section>
+
+      <!-- Agentes (editables) -->
+      <section class="flex flex-col gap-3 border-b border-zinc-100 py-4">
+        <span class="text-sm font-semibold tracking-wide text-slate-800 ml-4">Agentes</span>
+
+        <!-- ── Agente principal ─────────────────────────────────────────────── -->
+        @if (!editandoAgentePrincipal()) {
+          <div class="grid grid-cols-2 items-center px-4">
+            <p class="text-sm text-slate-500 font-medium">Agente principal</p>
+            <div class="flex items-center gap-2">
+              <p class="text-sm text-slate-800 font-medium truncate flex-1">{{ agentePrincipalNombre() }}</p>
+              @if (!esOrdenFinalizada()) {
+                <button
+                  class="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors shrink-0"
+                  title="Editar agente principal"
+                  (click)="abrirEdicionAgentePrincipal()">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                  </svg>
+                </button>
+              }
+            </div>
+          </div>
+        } @else {
+          <div class="flex flex-col gap-2 px-4">
+            <p class="text-sm text-slate-500 font-medium">Agente principal</p>
+            <select [(ngModel)]="agentePrincipalEdit"
+              class="p-2 bg-gray-50 border border-neutral-200 rounded-md text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none">
+              <option [value]="0">Seleccionar agente...</option>
+              @for(ag of agentesDisponibles(); track ag.id) {
+                <option [value]="ag.id">{{ ag.nombre }}</option>
+              }
+            </select>
+            <div class="flex gap-2 justify-end">
+              <button
+                class="px-3 py-1.5 text-xs text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors"
+                (click)="cancelarEdicionAgentePrincipal()">Cancelar</button>
+              <button
+                class="px-3 py-1.5 text-xs text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors disabled:opacity-50"
+                [disabled]="guardandoAgentePrincipal() || !agentePrincipalEdit"
+                (click)="guardarAgentePrincipal()">
+                {{ guardandoAgentePrincipal() ? 'Guardando...' : 'Guardar' }}
+              </button>
+            </div>
+          </div>
+        }
+
+        <!-- ── Agentes auxiliares ───────────────────────────────────────────── -->
+        @if (!editandoAuxiliares()) {
+          @if(agentesAuxiliaresNombres().length > 0) {
+            <div class="grid grid-cols-2 items-start px-4">
+              <p class="text-sm text-slate-500 font-medium pt-1">
+                Agente{{ agentesAuxiliaresNombres().length > 1 ? 's' : '' }} auxiliar{{ agentesAuxiliaresNombres().length > 1 ? 'es' : '' }}
+              </p>
+              <div class="flex items-center gap-2">
+                <div class="flex items-center flex-wrap" style="padding-left: 2px;">
+                  @for(aux of agentesAuxiliaresNombres() | slice:0:6; track aux; let i = $index) {
+                    <div class="relative group"
+                      [style.margin-left]="i === 0 ? '0' : '-10px'"
+                      [style.z-index]="agentesAuxiliaresNombres().length - i">
+                      <div class="w-7 h-7 rounded-full border-2 border-white flex items-center justify-center text-white text-[10px] font-bold shadow-sm cursor-default transition-transform duration-150 group-hover:scale-110 group-hover:border-slate-200 {{ getColorAvatar(aux) }}">
+                        {{ getIniciales(aux) }}
+                      </div>
+                      <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none shadow-lg" style="z-index: 9999;">
+                        {{ aux }}
+                        <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                      </div>
+                    </div>
+                  }
+                  @if(agentesAuxiliaresNombres().length > 6) {
+                    <div class="relative group" style="margin-left: -10px; z-index: 1;">
+                      <div class="w-7 h-7 rounded-full border-2 border-white flex items-center justify-center bg-gray-400 text-white text-[10px] font-bold shadow-sm cursor-default">
+                        +{{ agentesAuxiliaresNombres().length - 6 }}
+                      </div>
+                      <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none shadow-lg" style="z-index: 9999;">
+                        {{ getNombresAuxiliaresTexto(agentesAuxiliaresNombres()) }}
+                        <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                      </div>
+                    </div>
+                  }
+                </div>
+                @if (!esOrdenFinalizada()) {
+                  <button
+                    class="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors shrink-0"
+                    title="Editar agentes auxiliares"
+                    (click)="abrirEdicionAuxiliares()">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"
+                      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
+                  </button>
+                }
+              </div>
+            </div>
+          } @else {
+            <div class="grid grid-cols-2 items-center px-4">
+              <p class="text-sm text-slate-500 font-medium">Agente auxiliar</p>
+              <div class="flex items-center gap-2">
+                <p class="text-sm text-slate-400 italic">Sin auxiliar</p>
+                @if (!esOrdenFinalizada()) {
+                  <button
+                    class="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors shrink-0"
+                    title="Agregar agentes auxiliares"
+                    (click)="abrirEdicionAuxiliares()">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"
+                      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>
+                    </svg>
+                  </button>
+                }
+              </div>
+            </div>
+          }
+        } @else {
+          <!-- Modo edición auxiliares -->
+          <div class="flex flex-col gap-2 px-4">
+            <p class="text-sm text-slate-500 font-medium">Agentes auxiliares</p>
+            <div class="max-h-48 overflow-y-auto border border-neutral-200 rounded-md bg-gray-50 p-2 flex flex-col gap-1">
+              @for(ag of agentesDisponibles(); track ag.id) {
+                <label class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-white cursor-pointer text-sm">
+                  <input type="checkbox"
+                    [checked]="esAuxiliarSeleccionado(ag.id)"
+                    (change)="toggleAuxiliar(ag.id)"
+                    class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer" />
+                  <span class="text-slate-700">{{ ag.nombre }}</span>
+                </label>
+              }
+            </div>
+            <div class="flex gap-2 justify-end">
+              <button
+                class="px-3 py-1.5 text-xs text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors"
+                (click)="cancelarEdicionAuxiliares()">Cancelar</button>
+              <button
+                class="px-3 py-1.5 text-xs text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors disabled:opacity-50"
+                [disabled]="guardandoAuxiliares()"
+                (click)="guardarAuxiliares()">
+                {{ guardandoAuxiliares() ? 'Guardando...' : 'Guardar' }}
+              </button>
+            </div>
+          </div>
+        }
+      </section>
+
+      <!-- Mapa / Ubicación: solo si es presencial y tiene coordenadas -->
+      @if(!orden.esVirtual && orden.latitud && orden.longitud) {
+      <section class="flex flex-col gap-3 border-b border-zinc-100 py-4">
+        <div class="flex items-center justify-between px-4">
+          <span class="text-sm font-semibold tracking-wide text-slate-800">Ubicación</span>
+          @if (!editandoDireccion() && !esOrdenFinalizada()) {
+            <button
+              class="flex items-center gap-1 px-2 py-1 text-xs text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+              (click)="abrirEdicionDireccion()">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+              Cambiar
+            </button>
+          }
+        </div>
+
+        @if (!editandoDireccion()) {
+          <div class="px-4">
+            <div class="relative rounded-xl overflow-hidden border border-zinc-200">
+              <iframe
+                [src]="mapaUrl()"
+                width="100%" height="220"
+                style="border:0;border-radius:12px;"
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade"
+                allowfullscreen>
+              </iframe>
+            </div>
+            @if(orden.direccionGoogleMaps) {
+              <div class="flex items-start gap-2 mt-2 px-1">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                  class="text-slate-400 shrink-0 mt-0.5">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                  <circle cx="12" cy="10" r="3"></circle>
+                </svg>
+                <p class="text-xs text-slate-500">{{ orden.direccionGoogleMaps }}</p>
+              </div>
+            }
+          </div>
+        } @else {
+          <!-- Modo edición dirección -->
+          <div class="flex flex-col gap-3 px-4">
+            <div class="relative">
+              <input #searchInputVista
+                type="text"
+                [(ngModel)]="busquedaMapa"
+                placeholder="Buscar calle, lugar o colonia..."
+                class="w-full p-2.5 pr-10 bg-gray-50 border border-neutral-200 rounded-md text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"/>
+              <svg xmlns="http://www.w3.org/2000/svg" class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none"
+                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+            </div>
+
+            <div #mapContainerVista class="w-full h-[220px] rounded-xl border border-zinc-200 overflow-hidden bg-slate-100"></div>
+
+            @if(direccionEdit.direccionGoogleMaps) {
+              <div class="flex items-start gap-2 px-1">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                  class="text-blue-400 shrink-0 mt-0.5">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                  <circle cx="12" cy="10" r="3"></circle>
+                </svg>
+                <p class="text-xs text-slate-600">{{ direccionEdit.direccionGoogleMaps }}</p>
+              </div>
+            }
+
+            <div class="flex gap-2 justify-end">
+              <button
+                class="px-3 py-1.5 text-xs text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors"
+                (click)="cancelarEdicionDireccion()">Cancelar</button>
+              <button
+                class="px-3 py-1.5 text-xs text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors disabled:opacity-50"
+                [disabled]="guardandoDireccion() || !direccionEdit.latitud || !direccionEdit.longitud || !direccionEdit.direccionGoogleMaps"
+                (click)="guardarDireccion()">
+                {{ guardandoDireccion() ? 'Guardando...' : 'Guardar ubicación' }}
+              </button>
+            </div>
+          </div>
+        }
+      </section>
+      }
+
+      <!-- Observaciones (editable) -->
+      <section class="flex flex-col gap-3 border-b border-zinc-100 py-4">
+        <div class="flex items-center justify-between px-4">
+          <span class="text-sm font-semibold tracking-wide text-slate-800">Problemas</span>
+          @if (!editandoObservaciones() && !esOrdenFinalizada()) {
+            <button
+              class="flex items-center gap-1 px-2 py-1 text-xs text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+              (click)="abrirEdicionObservaciones()">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+              Editar
+            </button>
+          }
+        </div>
+
+        @if (!editandoObservaciones()) {
+          <div class="mx-4 p-3 bg-gray-50 rounded-lg border border-zinc-200">
+            @if(orden.observaciones) {
+              <p class="text-sm text-slate-700 leading-relaxed">{{ orden.observaciones }}</p>
+            } @else {
+              <p class="text-sm text-slate-400 italic">Sin observaciones</p>
+            }
+          </div>
+        } @else {
+          <div class="flex flex-col gap-2 mx-4">
+            <textarea
+              [(ngModel)]="observacionesEdit"
+              rows="4"
+              placeholder="Describe el problema u observaciones..."
+              class="w-full p-3 bg-gray-50 border border-neutral-200 rounded-lg text-sm text-slate-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none resize-none leading-relaxed">
+            </textarea>
+            <div class="flex gap-2 justify-end">
+              <button
+                class="px-3 py-1.5 text-xs text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors"
+                (click)="cancelarEdicionObservaciones()">Cancelar</button>
+              <button
+                class="px-3 py-1.5 text-xs text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors disabled:opacity-50"
+                [disabled]="guardandoObservaciones()"
+                (click)="guardarObservaciones()">
+                {{ guardandoObservaciones() ? 'Guardando...' : 'Guardar' }}
+              </button>
+            </div>
+          </div>
+        }
+      </section>
+
+      <!-- Notas de soporte -->
+      @if(orden.notasSoporte) {
+      <section class="flex flex-col gap-3 border-b border-zinc-100 py-4">
+        <span class="text-sm font-semibold tracking-wide text-slate-800 ml-4">Notas de soporte</span>
+        <div class="mx-4 p-3 bg-amber-50 rounded-lg border border-amber-200">
+          <p class="text-sm text-amber-800 leading-relaxed">{{ orden.notasSoporte }}</p>
+        </div>
+      </section>
+      }
+
+      <!-- Servicios -->
+      <section class="flex flex-col gap-3 border-b border-zinc-100 py-4">
+        <div class="flex justify-between items-center px-4">
+          <span class="text-sm font-semibold tracking-wide text-slate-800">Servicios</span>
+          <span class="text-xs font-bold text-blue-800 bg-blue-100 px-2 py-1 rounded">{{ getCantidadServicios() }}</span>
+        </div>
+        @if(serviciosDetalle().length > 0) {
+        <div class="flex flex-col gap-2 px-4">
+          @for(item of serviciosDetalle(); track item.id || item.idMovimiento) {
+          <div class="p-3 bg-gray-50 rounded-lg border border-zinc-200 hover:border-blue-300 transition-colors">
+            <div class="flex justify-between items-start gap-4">
+              <div class="flex-1">
+                <div class="flex items-start gap-3">
+                  <div class="flex-1">
+                    <p class="text-sm font-medium text-slate-800 mb-1">
+                      {{ item.nombreProducto || item.observacionesMovimiento || 'Sin descripción' }}
+                    </p>
+                    <div class="flex flex-wrap gap-2 text-xs text-slate-500">
+                      @if(item.codigoProducto) { <span>Código: {{ item.codigoProducto }}</span> }
+                      @if(item.cantidad && item.precioUnitario) {
+                        <span>•</span>
+                        <span>{{ item.cantidad }} un. x {{ formatearDinero(item.precioUnitario) }}</span>
+                      }
+                      @if(item.numeroMovimiento || item.idMovimiento) {
+                        <span>•</span>
+                        <span>#{{ item.numeroMovimiento || item.idMovimiento }}</span>
+                      }
+                    </div>
+                  </div>
+                </div>
+              </div>
+              @if(item.precioUnitario && item.cantidad) {
+              <div class="text-right shrink-0">
+                <p class="text-sm font-semibold text-slate-800">{{ formatearDinero(item.precioUnitario * item.cantidad) }}</p>
+              </div>
+              }
+            </div>
+            @if(item.observaciones) {
+            <div class="mt-3 pt-3 border-t border-zinc-200">
+              <p class="text-xs font-medium text-amber-600 mb-1">Observaciones</p>
+              <p class="text-xs text-amber-700">{{ item.observaciones }}</p>
+            </div>
+            }
+          </div>
+          }
+        </div>
+        } @else {
+          <p class="text-sm text-slate-500 px-4">No hay servicios registrados.</p>
+        }
+      </section>
+
+      <!-- Entregables -->
+      <section class="flex flex-col gap-3 border-b border-zinc-100 py-4">
+        <div class="flex justify-between items-center px-4">
+          <span class="text-sm font-semibold tracking-wide text-slate-800">Entregables</span>
+          <span class="text-xs font-bold text-blue-800 bg-blue-100 px-2 py-1 rounded">{{ getCantidadEntregables() }}</span>
+        </div>
+        @if(entregablesDetalle().length > 0) {
+        <div class="flex flex-col gap-2 px-4">
+          @for(item of entregablesDetalle(); track item.id) {
+          <div class="p-3 bg-gray-50 rounded-lg border border-zinc-200 hover:border-blue-300 transition-colors">
+            <div class="flex justify-between items-start gap-4">
+              <div class="flex-1">
+                <div class="flex items-start gap-3">
+                  <div class="flex-1">
+                    <p class="text-sm font-medium text-slate-800 mb-1">{{ item.nombreProducto }}</p>
+                    <div class="flex flex-wrap gap-2 text-xs text-slate-500">
+                      <span>Código: {{ item.codigoProducto }}</span>
+                      <span>•</span>
+                      <span>{{ item.cantidad }} un. x {{ formatearDinero(item.precioUnitario) }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="text-right shrink-0">
+                <p class="text-sm font-semibold text-slate-800">{{ formatearDinero(item.precioUnitario * item.cantidad) }}</p>
+              </div>
+            </div>
+            @if(item.observaciones) {
+            <div class="mt-3 pt-3 border-t border-zinc-200">
+              <p class="text-xs font-medium text-amber-600 mb-1">Observaciones</p>
+              <p class="text-xs text-amber-700">{{ item.observaciones }}</p>
+            </div>
+            }
+          </div>
+          }
+        </div>
+        } @else {
+          <p class="text-sm text-slate-500 px-4">No hay entregables registrados.</p>
+        }
+      </section>
+
+      <!-- Totales -->
+      <section class="flex flex-col gap-3 px-4 py-4">
+        <span class="text-sm font-semibold tracking-wide text-slate-800">Totales financieros</span>
+        <div class="p-4 bg-gray-50 rounded-lg border border-zinc-200">
+          <div class="flex justify-between items-center">
+            <p class="text-base font-semibold text-slate-700">Total</p>
+            <p class="text-lg font-bold text-slate-900">{{ formatearDinero(orden?.totalConIva, 2) }}</p>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="flex justify-start p-3.5 border-t border-neutral-200 bg-neutral-50 shrink-0">
+    <app-ui-boton variante="cerrar" texto="Cerrar" (click)="cerrarPanel()"></app-ui-boton>
+  </div>
+  }
+</div>

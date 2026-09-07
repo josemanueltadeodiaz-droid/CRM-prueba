@@ -1,0 +1,187 @@
+<div class="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+  <!-- Header -->
+  <app-header-modal
+    [titulo]="tituloDialog"
+    descripcion="Completa los datos del viático"
+    (click)="onCerrar()"
+  ></app-header-modal>
+
+  <!-- Formulario -->
+  <form 
+    [formGroup]="viaticoForm" 
+    (ngSubmit)="guardar()" 
+    class="flex-1 flex flex-col overflow-hidden"
+    autocomplete="off"
+  >
+    <!-- Contenido scrolleable -->
+    <div class="flex-1 overflow-y-auto p-6">
+      <!-- Estado de carga -->
+      @if (guardando) {
+        <div class="absolute inset-0 bg-gray-900/75 flex flex-col items-center justify-center z-50 rounded-lg">
+          <div class="border-4 border-gray-200 border-t-blue-600 rounded-full w-12 h-12 animate-spin"></div>
+          <p class="mt-4 text-white font-medium">
+            {{ modo === 'edicion' ? 'Actualizando' : 'Guardando' }} viático...
+          </p>
+        </div>
+      }
+
+      <!-- Mensaje de error -->
+      @if (mensajeError && !guardando) {
+        <div class="flex items-center p-4 mb-4 rounded-lg bg-red-50 text-red-800 border border-red-200 animate-fade-in">
+          <svg class="w-5 h-5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+          </svg>
+          <span class="text-sm">{{ mensajeError }}</span>
+        </div>
+      }
+
+      <!-- Contenido del formulario -->
+      <div class="flex flex-col gap-6">
+        <!-- Sección 1: Información General -->
+        <section class="flex flex-col gap-2">
+          <app-ui-tipografia
+            variante="caption-lg"
+            texto="Información General">
+          </app-ui-tipografia>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <app-ui-input-field
+              label="Fecha"
+              variant="date"
+              formControlName="fecha"
+              [labelObligatorio]="true"
+              [textoError]="isFieldInvalid('fecha') ? getFieldError('fecha') : ''"
+              class="w-full"
+            ></app-ui-input-field>
+
+            <app-ui-input-field
+              label="Monto Total"
+              variant="number"
+              formControlName="montoTotal"
+              placeholder="0.00"
+              [labelObligatorio]="true"
+              [nombreIcono]="'banknotes'"
+              [textoError]="isFieldInvalid('montoTotal') ? getFieldError('montoTotal') : ''"
+              class="w-full"
+            ></app-ui-input-field>
+          </div>
+        </section>
+
+        <app-ui-divider></app-ui-divider>
+
+        <!-- Sección 2: Detalles del Viaje -->
+        <section class="flex flex-col gap-2">
+          <app-ui-tipografia
+            variante="caption-lg"
+            texto="Detalles del Viaje">
+          </app-ui-tipografia>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <app-ui-input-field
+              label="Kilómetros Recorridos"
+              variant="number"
+              formControlName="kmRecorridos"
+              [nombreIcono]="'truck'"
+              placeholder="0"
+              class="w-full"
+            ></app-ui-input-field>
+
+            <app-ui-input-field
+              label="Lugar de Destino"
+              variant="text"
+              formControlName="lugarDestino"
+              [nombreIcono]="'map-pin'"
+              placeholder="Ciudad, estado"
+              class="w-full"
+            ></app-ui-input-field>
+          </div>
+        </section>
+
+        <app-ui-divider></app-ui-divider>
+
+        <!-- Sección 3: Descripción de Gastos -->
+        <section class="flex flex-col gap-2">
+          <app-ui-tipografia
+            variante="caption-lg"
+            texto="Descripción de Gastos">
+          </app-ui-tipografia>
+          
+          <div class="flex flex-col gap-4">
+            <!-- Gastos -->
+            <app-ui-input-field
+              label="Descripción de Gastos"
+              variant="text"
+              formControlName="gastos"
+              [nombreIcono]="'document'"
+              placeholder="Ej: Transporte, alimentación, hospedaje"
+              [labelObligatorio]="true"
+              [textoError]="isFieldInvalid('gastos') ? getFieldError('gastos') : ''"
+              class="w-full"
+            ></app-ui-input-field>
+
+            <!-- Descripción adicional -->
+            <app-ui-input-field
+              label="Descripción Adicional (Opcional)"
+              variant="textarea"
+              formControlName="descripcion"
+              placeholder="Agregue detalles adicionales sobre el viático..."
+              [rows]="3"
+              class="w-full"
+            ></app-ui-input-field>
+
+            <!-- Factura -->
+            <div class="w-full">
+              <app-ui-input-field
+                label="¿Tiene factura?"
+                variant="checkbox"
+                (checkedChange)="estadoCheckot($event)"
+                class="w-full"
+              ></app-ui-input-field>
+              <p class="text-xs text-gray-500 mt-1 ml-6">
+                Indica si el gasto cuenta con factura
+              </p>
+            </div>
+
+            <!-- Proveedor (condicional) -->
+            <div class="w-full">
+              @if (viaticoForm.get('tieneFactura')?.value) {
+                <app-ui-input-field
+                  label="Nombre del Proveedor"
+                  variant="text"
+                  formControlName="proveedorNombre"
+                  placeholder="Ingrese el nombre completo del proveedor"
+                  [labelObligatorio]="true"
+                  [textoError]="isFieldInvalid('proveedorNombre') ? getFieldError('proveedorNombre') : ''"
+                  class="w-full"
+                ></app-ui-input-field>
+              }
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- Footer con botones  -->
+    <div class="flex-shrink-0 border-t border-slate-200 bg-white p-6">
+      <div class="flex justify-end gap-3">
+        <app-ui-boton
+          [tipo]="'button'"
+          [variante]="'cerrar'"
+          [texto]="'Cancelar'"
+          (alClickear)="onCerrar()"
+          [estaDeshabilitado]="guardando"
+          [anchoCompleto]="false"
+        ></app-ui-boton>
+
+        <app-ui-boton
+          [tipo]="'submit'"
+          [variante]="'primario'"
+          [texto]="textoBoton"
+          [estaCargando]="guardando"
+          [estaDeshabilitado]="guardando || viaticoForm.invalid"
+          [anchoCompleto]="false"
+        ></app-ui-boton>
+      </div>
+    </div>
+  </form>
+</div>

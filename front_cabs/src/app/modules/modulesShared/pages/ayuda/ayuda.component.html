@@ -1,0 +1,124 @@
+<!-- =====================================================================================
+     CENTRO DE AYUDA - COMPAQI COMERCIAL
+     ===================================================================================== -->
+
+<div class="centro-ayuda min-h-screen">
+  
+  <!-- HEADER -->
+  <div class="header text-center mb-8">
+    <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
+      <app-ui-icono name="question-mark-circle" size="size-8" color="text-blue-600"></app-ui-icono>
+    </div>
+    <h1 class="text-3xl font-bold text-gray-900 mb-2">Centro de Ayuda</h1>
+    <p class="text-gray-500 text-lg">¿Cómo podemos ayudarte hoy?</p>
+    
+    <!-- Buscador -->
+    <div class="buscador max-w-2xl mx-auto mt-6">
+      <div class="relative">
+        <app-ui-icono name="magnifying-glass" size="size-5" color="text-gray-400" class="absolute left-3 top-1/2 -translate-y-1/2"></app-ui-icono>
+        <input type="text" 
+               placeholder="Buscar por palabra clave, módulo o pregunta..."
+               class="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+               [(ngModel)]="terminoBusqueda"
+               (input)="filtrarPreguntas()">
+      </div>
+    </div>
+  </div>
+
+  <!-- CATEGORÍAS -->
+  <div class="categorias flex flex-wrap justify-center gap-3 mb-8">
+    <button *ngFor="let cat of categorias" 
+            (click)="seleccionarCategoria(cat.id)"
+            [class.bg-blue-600]="categoriaActiva === cat.id"
+            [class.text-white]="categoriaActiva === cat.id"
+            [class.bg-white]="categoriaActiva !== cat.id"
+            [class.text-gray-700]="categoriaActiva !== cat.id"
+            class="flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-200 hover:bg-blue-50 transition-colors cursor-pointer">
+      <app-ui-icono 
+        [name]="cat.icono" 
+        size="size-4" 
+        [color]="categoriaActiva === cat.id ? 'text-white' : 'text-gray-700'">
+      </app-ui-icono>
+      <span>{{ cat.nombre }}</span>
+      <span class="text-xs px-2 py-0.5 rounded-full" 
+            [class.bg-white]="categoriaActiva === cat.id"
+            [class.text-blue-600]="categoriaActiva === cat.id"
+            [class.bg-gray-100]="categoriaActiva !== cat.id"
+            [class.text-gray-600]="categoriaActiva !== cat.id">
+        {{ cat.cantidad }}
+      </span>
+    </button>
+  </div>
+
+  <!-- RESULTADOS DE BÚSQUEDA -->
+  @if(terminoBusqueda){
+    <div class="mb-4 text-sm text-gray-500">
+      {{ preguntasFiltradas.length }} resultados encontrados para "{{ terminoBusqueda }}"
+    </div>
+  }
+
+  <!-- PREGUNTAS FRECUENTES -->
+  <div class="preguntas max-w-4xl mx-auto space-y-3">
+    <div *ngFor="let pregunta of preguntasFiltradas" 
+         class="pregunta-card bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+      
+      <!-- Header de la pregunta -->
+      <div class="pregunta-header flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+           (click)="togglePregunta(pregunta)">
+        <div class="flex items-center gap-3 flex-1">
+          <span class="text-gray-400 text-sm">{{ pregunta.abierta ? '▼' : '▶' }}</span>
+          <h3 class="font-medium text-gray-900">{{ pregunta.texto }}</h3>
+        </div>
+        <span class="categoria-badge text-xs px-2 py-1 rounded-full"
+              [ngClass]="getCategoriaColor(pregunta.categoriaId)">
+          {{ getCategoriaNombre(pregunta.categoriaId) }}
+        </span>
+      </div>
+      
+      <!-- Respuesta -->
+      <div class="pregunta-respuesta border-t border-gray-100" *ngIf="pregunta.abierta">
+        <div class="respuesta p-4 bg-gray-50">
+          <div class="prose prose-sm max-w-none" [innerHTML]="pregunta.respuesta"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EMPTY STATE -->
+  @if(preguntasFiltradas.length === 0){
+    <div class="empty-state text-center py-16 bg-white rounded-xl border border-gray-200 max-w-4xl mx-auto w-full ">
+      <div class="flex items-center justify-center rounded-full size-16 bg-yellow-50 mx-auto mb-4">
+        <app-ui-icono name="magnifying-glass" size="size-8" color="text-yellow-600"></app-ui-icono>
+      </div>
+      <h3 class="text-lg font-medium text-gray-900 mb-1">No se encontraron resultados</h3>
+      <p class="text-gray-500">Intenta con otras palabras clave o explora las categorías</p>
+    </div>
+  }
+
+  <!-- CONTACTO ADICIONAL -->
+  <div class="contacto text-center mt-12 p-6 bg-white rounded-xl border border-gray-200 max-w-2xl mx-auto">
+    <div class="flex items-center justify-center gap-2 mb-4">
+      <app-ui-icono name="chat-bubble-left" size="size-5" color="text-blue-600"></app-ui-icono>
+      <p class="text-gray-700 font-medium">¿Necesitas ayuda adicional?</p>
+    </div>
+    
+    <!-- Opciones de contacto -->
+    <div class="flex flex-col sm:flex-row items-center justify-center gap-6">
+      <!-- Teléfono -->
+      <div class="flex items-center gap-2 text-gray-600">
+        <app-ui-icono name="phone" size="size-4" color="text-gray-500"></app-ui-icono>
+        <a href="tel:6183203165" class="hover:text-blue-600 transition-colors">
+          618 320 3165
+        </a>
+      </div>
+      
+      <!-- Correo -->
+      <div class="flex items-center gap-2 text-gray-600">
+        <app-ui-icono name="envelope" size="size-4" color="text-gray-500"></app-ui-icono>
+        <a href="mailto:soporte@cabsdgo.com" class="hover:text-blue-600 transition-colors">
+          soporte@cabsdgo.com
+        </a>
+      </div>
+    </div>
+  </div>
+</div>

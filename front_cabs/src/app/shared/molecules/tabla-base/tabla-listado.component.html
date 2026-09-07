@@ -1,0 +1,112 @@
+<div class="contenedor-tabla" [ngClass]="clasePersonalizada">
+  <!-- Indicador de carga -->
+  @if (cargando) {
+  <div class="estado-tabla">
+    <p>{{ mensajeCargando }}</p>
+  </div>
+  }
+
+  <!-- Tabla -->
+  @if (!cargando) {
+  <table class="tabla-listado">
+    <thead class="encabezado-tabla">
+      <tr>
+        <!-- Columna de índice condicional -->
+        @if (mostrarIndice) {
+        <th class="celda-encabezado" style="text-align: center;">
+          <app-table-header-cell encabezado="n°" alineacion="center">
+          </app-table-header-cell>
+        </th>
+        }
+
+        @for (columna of columnas; track $index) {
+        <th class="celda-encabezado" [style.width]="columna.ancho" [style.text-align]="columna.alineacion || 'center'">
+          <app-table-header-cell [encabezado]="columna.encabezado" [ancho]="columna.ancho"
+            [alineacion]="columna.alineacion || 'center'">
+          </app-table-header-cell>
+        </th>
+        }
+
+        @if (acciones.length > 0) {
+        <th class="celda-encabezado celda-acciones">
+          <app-table-header-cell encabezado="Acciones" alineacion="center">
+          </app-table-header-cell>
+        </th>
+        }
+      </tr>
+    </thead>
+
+    <tbody class="cuerpo-tabla">
+      <!-- Mensaje sin datos -->
+      @if (datos.length === 0) {
+      <tr>
+        <td [attr.colspan]="columnas.length + (mostrarIndice ? 1 : 0) + (acciones.length > 0 ? 1 : 0)"
+          class="celda-sin-datos">
+          {{ mensajeSinDatos }}
+        </td>
+      </tr>
+      }
+
+      <!-- Filas de datos -->
+      @for (item of datos; track $index; let i = $index) {
+      <tr class="fila-datos" (click)="alManejarFilaClick(item)" (dblclick)="alManejarFilaDobleClick(item)">
+
+        <!-- Columna de índice condicional -->
+        @if (mostrarIndice) {
+        <td class="celda-dato" style="text-align: center;">
+          {{ i + 1 }}
+        </td>
+        }
+
+        @for (columna of columnas; track $index) {
+        <td class="celda-dato" [style.text-align]="columna.alineacion || 'center'">
+
+          <!-- Si es un campo booleano con etiquetas, mostrar la etiqueta -->
+          @if (columna.esBooleano && columna.campo) {
+          @if (columna.etiquetasBooleanas) {
+          @if (obtenerValorCelda(item, columna.campo) === true) {
+          <span class="px-3 py-1 rounded-full text-xs font-medium" [ngClass]="columna.etiquetasBooleanas.true.clase">
+            {{ columna.etiquetasBooleanas.true.texto }}
+          </span>
+          } @else {
+          <span class="px-3 py-1 rounded-full text-xs font-medium" [ngClass]="columna.etiquetasBooleanas.false.clase">
+            {{ columna.etiquetasBooleanas.false.texto }}
+          </span>
+          }
+          } @else {
+          <!-- Si no hay etiquetas definidas, mostrar Sí/No -->
+          <span [class]="obtenerValorCelda(item, columna.campo) ? 'text-green-600' : 'text-red-600'">
+            {{ obtenerValorCelda(item, columna.campo) ? 'Sí' : 'No' }}
+          </span>
+          }
+          } @else {
+          <!-- Para campos no booleanos, usar el componente table-cell normal -->
+          <app-table-cell [valor]="obtenerValorCelda(item, columna.campo!)" [dato]="item"
+            [plantilla]="columna.plantilla" [alineacion]="columna.alineacion || 'center'">
+          </app-table-cell>
+          }
+        </td>
+        }
+
+        <!-- Columna de acciones mejorada -->
+        @if (acciones.length > 0) {
+        <td class="celda-dato celda-acciones">
+          <div class="contenedor-acciones">
+            @for (accion of acciones; track $index) {
+            @if (mostrarAccion(accion, item)) {
+            <app-ui-boton [variante]="obtenerVarianteBoton(accion)" [tamano]="obtenerTamanoBoton(accion)"
+              [texto]="accion.etiqueta" [anchoCompleto]="false" [mostrarIcono]="!!accion.icono"
+              [nombreIcono]="accion.icono" [clasesAdicionales]="'btn-accion ' + (accion.clase || '')"
+              (alClickear)="ejecutarAccion(accion, item, $event)">
+            </app-ui-boton>
+            }
+            }
+          </div>
+        </td>
+        }
+      </tr>
+      }
+    </tbody>
+  </table>
+  }
+</div>

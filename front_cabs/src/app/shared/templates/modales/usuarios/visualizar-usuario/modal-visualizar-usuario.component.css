@@ -1,0 +1,136 @@
+/* ===================================================================
+   PANEL LATERAL DERECHO - ESTILOS PRINCIPALES
+   =================================================================== */
+
+:host ::ng-deep .mat-mdc-dialog-container {
+  padding: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Animación de entrada desde la derecha */
+@keyframes slideInFromRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Animación de salida hacia la derecha */
+@keyframes slideOutToRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+/* Contenedor principal del panel */
+.fixed.right-0 {
+  animation: slideInFromRight 0.3s ease-out forwards;
+}
+
+/* ===================================================================
+   TRANSICIONES Y HOVER EFFECTS
+   =================================================================== */
+
+/* Botones con efectos suaves */
+button {
+  position: relative;
+  overflow: hidden;
+}
+
+button::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  transform: translate(-50%, -50%);
+  transition: width 0.3s, height 0.3s;
+}
+
+button:active::before {
+  width: 300px;
+  height: 300px;
+}
+
+/* ===================================================================
+   SCROLLBAR PERSONALIZADO
+   =================================================================== */
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f3f4f6;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+  transition: background 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* ===================================================================
+   RESPONSIVE DESIGN
+   =================================================================== */
+
+@media (max-width: 768px) {
+  .fixed.right-0 {
+    width: 100% !important;
+  }
+}
+
+/* ===================================================================
+   ESTADO DE CARGA
+   =================================================================== */
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* ===================================================================
+   MEJORAS DE ACCESIBILIDAD
+   =================================================================== */
+
+/* Focus visible para navegación con teclado */
+button:focus-visible {
+  outline: 2px solid var(--color-primario);
+  outline-offset: 2px;
+}
+
+/* Reducir movimiento para usuarios con preferencia */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

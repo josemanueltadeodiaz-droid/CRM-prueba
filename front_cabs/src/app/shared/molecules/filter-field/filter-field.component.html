@@ -1,0 +1,12 @@
+<div class="filter-field">
+  <label *ngIf="titulo" class="filter-field-title">{{ titulo }}</label>
+  
+  <app-ui-input-field
+    [variant]="inputVariant"
+    [placeholder]="placeholder"
+    [value]="value"
+    [options]="options"
+    [nombreIcono]="iconName || ''"
+    (valueChange)="onValueChange($event)">
+  </app-ui-input-field>
+</div>

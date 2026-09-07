@@ -1,0 +1,19 @@
+<div class="flex flex-col gap-4 border-b border-neutral-200">
+    <div class="flex flex-row justify-between p-4 items-center">
+        <div class="flex flex-col gap-1">
+            <app-ui-tipografia [texto]="titulo" variante="h3"></app-ui-tipografia>
+            <app-ui-tipografia [texto]="descripcion" variante="p" color="text-zinc-500"></app-ui-tipografia>
+        </div>
+
+        <div class="relative flex items-center gap-2">
+            <ng-content select="[acciones-extra]"></ng-content>
+            <ng-content select="[acciones-extra]"></ng-content>
+
+            <div class="relative group">
+                <button class="p-2 cursor-pointer hover:bg-gray-100 rounded-full" (click)="cerrarModal.emit()" title="Cerrar">
+                    <app-ui-icono name="x-mark" size="size-5"></app-ui-icono>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

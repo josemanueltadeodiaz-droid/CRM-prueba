@@ -1,0 +1,336 @@
+<!-- 
+  ============================================
+  MODAL PRINCIPAL - Enviar Cotización
+  Contenedor base con dimensiones fijas y scroll controlado
+  ============================================
+-->
+<div class="flex flex-col h-full max-h-[90vh] w-full max-w-[900px] overflow-hidden bg-white rounded-xl shadow-2xl">
+
+  <!-- 
+    ============================================
+    HEADER - Título y descripción del modal
+    Componente fijo en la parte superior
+    ============================================
+  -->
+  <div class="flex flex-col gap-1.5 shrink-0">
+    <app-header-modal titulo="Enviar cotización" descripcion="Por cual medio quieres enviar tu cotización"
+      (cerrarModal)="cerrar()">
+    </app-header-modal>
+
+    <!-- 
+      TABS - Navegación entre tipos de envío
+      - Tipo de envío: Usa correos pre-registrados
+      - Personalizado: Permite ingresar correo manual
+    -->
+    <app-tab [tabs]="tabsConfig" [tabActivaId]="tabActivo" (tabSeleccionada)="cambiarTab($event)"
+      [usarRouterLink]="false">
+    </app-tab>
+  </div>
+
+  <!-- 
+    ============================================
+    CONTENIDO PRINCIPAL - Área scrolleable
+    Cambia según la pestaña activa
+    ============================================
+  -->
+  <div class="flex-1 w-full gap-4 flex flex-col overflow-y-auto px-6 py-4">
+
+    <!-- 
+      ============================================
+      SECCIÓN: TIPO DE ENVÍO (Correos pre-registrados)
+      Se muestra cuando tabActivo === 'Tipo-de-envio'
+      ============================================
+    -->
+    <ng-container *ngIf="tabActivo === 'Tipo-de-envio'; else personalizadoContent">
+
+      <!-- 
+        ===== SUBSECCIÓN 1: Lista de correos disponibles =====
+        Muestra todos los correos registrados para el cliente
+      -->
+      <div class="flex flex-col gap-4">
+        <!-- Título con indicador de campo obligatorio -->
+        <div class="flex gap-1 items-center">
+          <app-ui-tipografia variante="caption"
+            texto="Seleccione una opción para enviar una cotización"></app-ui-tipografia>
+          <app-ui-tipografia variante="caption" texto="*" color="text-red-500"></app-ui-tipografia>
+        </div>
+
+        <!-- Lista de correos o mensaje de "sin correos" -->
+        <div class="flex flex-col gap-3">
+
+          <!-- Caso 1: Hay correos disponibles y cliente válido -->
+          <ng-container *ngIf="correosDisponibles.length > 0 && cliente.id !== 832; else sinCorreos">
+            <ng-container *ngFor="let correo of correosDisponibles">
+              <label [class]="getStyleCorreoLista(correo.email)" class="cursor-pointer transition-all duration-200">
+                <div class="flex items-start w-full">
+
+                  <div class="relative flex items-center justify-center w-5 h-5 mr-4 mt-0.5 shrink-0">
+                    <input type="checkbox" [checked]="isCorreoChecked(correo.email)"
+                      (change)="seleccionarCorreoLista(correo.email)"
+                      class="peer appearance-none absolute inset-0 w-full h-full z-10 cursor-pointer">
+
+                    <div class="w-5 h-5 border rounded transition-colors"
+                      [ngClass]="isCorreoChecked(correo.email) ? 'border-blue-700 bg-blue-700' : 'border-gray-300 bg-white'">
+                    </div>
+
+                    <div class="absolute text-white transition-transform duration-200"
+                      [ngClass]="isCorreoChecked(correo.email) ? 'scale-100' : 'scale-0'">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20"
+                        fill="currentColor">
+                        <path fill-rule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clip-rule="evenodd" />
+                      </svg>
+                    </div>
+                  </div>
+
+                  <div class="flex flex-col gap-1 w-full">
+                    <div class="flex w-full justify-between items-center">
+                      <app-ui-tipografia variante="p" [texto]="correo.label"
+                        [color]="isCorreoChecked(correo.email) ? 'text-blue-900 font-semibold' : 'text-gray-700 font-medium'">
+                      </app-ui-tipografia>
+
+                      <app-ui-tipografia variante="p" [texto]="correo.email"
+                        [color]="isCorreoChecked(correo.email) ? 'text-blue-900 font-semibold' : 'text-gray-700 font-medium'">
+                      </app-ui-tipografia>
+                    </div>
+
+                    <app-ui-tipografia variante="p-sm"
+                      [texto]="isCorreoChecked(correo.email) ? 'Seleccionado para envío' : 'Haga clic para incluir este correo'"
+                      [color]="isCorreoChecked(correo.email) ? 'text-blue-600' : 'text-gray-500'">
+                    </app-ui-tipografia>
+                  </div>
+                </div>
+              </label>
+            </ng-container>
+          </ng-container>
+
+          <!-- Caso 2: No hay correos disponibles - Template alternativo -->
+          <ng-template #sinCorreos>
+            <div
+              class="flex flex-col items-center justify-center p-6 border-2 border-dashed border-gray-200 rounded-xl bg-gray-50 text-center gap-2">
+              <!-- Icono de correo tachado -->
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-gray-400 mb-1" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                  d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3l18 18" />
+              </svg>
+              <app-ui-tipografia variante="p" texto="No hay correos registrados para este cliente"
+                color="text-gray-700 font-medium"></app-ui-tipografia>
+              <app-ui-tipografia variante="p-sm" texto="Ve a la pestaña 'Personalizado' para escribir uno manualmente."
+                color="text-gray-500"></app-ui-tipografia>
+            </div>
+          </ng-template>
+
+        </div>
+      </div>
+
+      <!-- 
+        ===== SUBSECCIÓN 2: Selección de tipo de IVA =====
+        Con IVA / Sin IVA - Siempre visible en pestaña Tipo de envío
+      -->
+      <div class="flex flex-col gap-4 mt-2">
+        <!-- Título con indicador de campo obligatorio -->
+        <div class="flex gap-1 items-center">
+          <app-ui-tipografia variante="caption"
+            texto="Seleccione si desea generar el documento con IVA o sin IVA"></app-ui-tipografia>
+          <app-ui-tipografia variante="caption" texto="*" color="text-red-500"></app-ui-tipografia>
+        </div>
+
+        <!-- Opciones de IVA -->
+        <div class="flex flex-col gap-3">
+          <!-- Opción: Con IVA -->
+          <label [class]="getStyleGeneral('iva', 'conIVA')">
+            <div class="flex items-start w-full">
+              <!-- Radio button personalizado -->
+              <div class="relative flex items-center justify-center w-5 h-5 mr-4 mt-0.5 shrink-0">
+                <input type="radio" name="tipoIVA" value="conIVA" [checked]="seleccion.iva === 'conIVA'"
+                  (change)="seleccionarTipoIVA('conIVA')"
+                  class="peer appearance-none absolute inset-0 w-full h-full z-10 cursor-pointer">
+                <div class="w-5 h-5 border border-gray-300 rounded-full peer-checked:border-blue-700 transition-colors">
+                </div>
+                <div
+                  class="absolute w-2.5 h-2.5 bg-blue-700 rounded-full scale-0 peer-checked:scale-100 transition-transform">
+                </div>
+              </div>
+              <!-- Texto descriptivo -->
+              <div class="flex flex-col gap-1 w-full">
+                <app-ui-tipografia variante="p" texto="Con IVA"
+                  [color]="seleccion.iva === 'conIVA' ? 'text-blue-900 font-semibold' : 'text-gray-700 font-medium'"></app-ui-tipografia>
+                <app-ui-tipografia variante="p-sm" texto="Se enviará la cotización con IVA"
+                  color="text-gray-500"></app-ui-tipografia>
+              </div>
+            </div>
+          </label>
+
+          <!-- Opción: Sin IVA -->
+          <label [class]="getStyleGeneral('iva', 'sinIVA')">
+            <div class="flex items-start w-full">
+              <!-- Radio button personalizado -->
+              <div class="relative flex items-center justify-center w-5 h-5 mr-4 mt-0.5 shrink-0">
+                <input type="radio" name="tipoIVA" value="sinIVA" [checked]="seleccion.iva === 'sinIVA'"
+                  (change)="seleccionarTipoIVA('sinIVA')"
+                  class="peer appearance-none absolute inset-0 w-full h-full z-10 cursor-pointer">
+                <div class="w-5 h-5 border border-gray-300 rounded-full peer-checked:border-blue-700 transition-colors">
+                </div>
+                <div
+                  class="absolute w-2.5 h-2.5 bg-blue-700 rounded-full scale-0 peer-checked:scale-100 transition-transform">
+                </div>
+              </div>
+              <!-- Texto descriptivo -->
+              <div class="flex flex-col gap-1 w-full">
+                <app-ui-tipografia variante="p" texto="Sin IVA"
+                  [color]="seleccion.iva === 'sinIVA' ? 'text-blue-900 font-semibold' : 'text-gray-700 font-medium'"></app-ui-tipografia>
+                <app-ui-tipografia variante="p-sm" texto="Se enviará la cotización sin IVA"
+                  color="text-gray-500"></app-ui-tipografia>
+              </div>
+            </div>
+          </label>
+        </div>
+      </div>
+
+    </ng-container>
+
+    <!-- 
+      ============================================
+      SECCIÓN: PERSONALIZADO (Correo manual)
+      Template mostrado cuando tabActivo !== 'Tipo-de-envio'
+      ============================================
+    -->
+    <ng-template #personalizadoContent>
+
+      <!-- 
+        ===== SUBSECCIÓN 1: Input de correo personalizado =====
+        Campo de texto con validación de email
+      -->
+      <div class="flex flex-col gap-4">
+        <!-- Título con indicador de campo obligatorio -->
+        <div class="flex gap-1 items-center">
+          <app-ui-tipografia variante="caption"
+            texto="Ingrese el correo de destino para enviar una cotización"></app-ui-tipografia>
+          <app-ui-tipografia variante="caption" texto="*" color="text-red-500"></app-ui-tipografia>
+        </div>
+
+        <!-- Contenedor del input con estilos mejorados -->
+        <div class="flex flex-col gap-3">
+          <div
+            class="flex flex-col gap-3 w-full p-5 border border-gray-200 rounded-xl bg-white hover:border-gray-300 transition-colors focus-within:border-blue-600 focus-within:ring-1 focus-within:ring-blue-600">
+
+            <!-- Etiquetas descriptivas -->
+            <div class="flex flex-col gap-1 w-full">
+              <app-ui-tipografia variante="p" texto="Correo Electrónico" color="text-gray-900 font-semibold">
+              </app-ui-tipografia>
+              <app-ui-tipografia variante="p-sm"
+                texto="Ingresa la dirección de correo a la que deseas enviar la cotización" color="text-gray-500">
+              </app-ui-tipografia>
+            </div>
+
+            <!-- 
+              Input de correo con validación
+              - ngModel para two-way binding
+              - Validaciones: required y email
+              - Cambia de color según estado (válido/inválido)
+            -->
+            <div class="w-full mt-1">
+              <input type="email" name="inputCorreo" placeholder="ejemplo@correo.com"
+                [(ngModel)]="seleccion.inputCorreoPersonalizado" #correoInput="ngModel" required email
+                class="w-full border rounded-lg px-4 py-2.5 text-sm outline-none transition-all placeholder:text-gray-400"
+                [ngClass]="correoInput.invalid && correoInput.touched ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-blue-600 focus:ring-blue-600'">
+
+              <!-- Mensajes de error de validación -->
+              <div *ngIf="correoInput.invalid && correoInput.touched" class="text-red-500 text-xs mt-1.5 ml-1">
+                <span *ngIf="correoInput.errors?.['required']">El correo es obligatorio.</span>
+                <span *ngIf="correoInput.errors?.['email']">Debe incluir un signo "@" y un dominio válido.</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- 
+        ===== SUBSECCIÓN 2: Selección de tipo de IVA (Personalizado) =====
+        Con IVA / Sin IVA - Para la pestaña personalizada
+      -->
+      <div class="flex flex-col gap-4 mt-4">
+        <!-- Título con indicador de campo obligatorio -->
+        <div class="flex gap-1 items-center">
+          <app-ui-tipografia variante="caption"
+            texto="Seleccione si desea generar el documento con IVA o sin IVA"></app-ui-tipografia>
+          <app-ui-tipografia variante="caption" texto="*" color="text-red-500"></app-ui-tipografia>
+        </div>
+
+        <!-- Opciones de IVA -->
+        <div class="flex flex-col gap-3">
+          <!-- Opción: Con IVA -->
+          <label [class]="getStyleGeneral('ivaPersonalizado', 'conIVA')">
+            <div class="flex items-start w-full">
+              <!-- Radio button personalizado -->
+              <div class="relative flex items-center justify-center w-5 h-5 mr-4 mt-0.5 shrink-0">
+                <input type="radio" name="tipoIVAPersonalizado" value="conIVA"
+                  [checked]="seleccion.ivaPersonalizado === 'conIVA'"
+                  (change)="seleccionarTipoIVAPersonalizado('conIVA')"
+                  class="peer appearance-none absolute inset-0 w-full h-full z-10 cursor-pointer">
+                <div class="w-5 h-5 border border-gray-300 rounded-full peer-checked:border-blue-700 transition-colors">
+                </div>
+                <div
+                  class="absolute w-2.5 h-2.5 bg-blue-700 rounded-full scale-0 peer-checked:scale-100 transition-transform">
+                </div>
+              </div>
+              <!-- Texto descriptivo -->
+              <div class="flex flex-col gap-1 w-full">
+                <app-ui-tipografia variante="p" texto="Con IVA"
+                  [color]="seleccion.ivaPersonalizado === 'conIVA' ? 'text-blue-900 font-semibold' : 'text-gray-700 font-medium'"></app-ui-tipografia>
+                <app-ui-tipografia variante="p-sm" texto="Se enviará la cotización con IVA"
+                  color="text-gray-500"></app-ui-tipografia>
+              </div>
+            </div>
+          </label>
+
+          <!-- Opción: Sin IVA -->
+          <label [class]="getStyleGeneral('ivaPersonalizado', 'sinIVA')">
+            <div class="flex items-start w-full">
+              <!-- Radio button personalizado -->
+              <div class="relative flex items-center justify-center w-5 h-5 mr-4 mt-0.5 shrink-0">
+                <input type="radio" name="tipoIVAPersonalizado" value="sinIVA"
+                  [checked]="seleccion.ivaPersonalizado === 'sinIVA'"
+                  (change)="seleccionarTipoIVAPersonalizado('sinIVA')"
+                  class="peer appearance-none absolute inset-0 w-full h-full z-10 cursor-pointer">
+                <div class="w-5 h-5 border border-gray-300 rounded-full peer-checked:border-blue-700 transition-colors">
+                </div>
+                <div
+                  class="absolute w-2.5 h-2.5 bg-blue-700 rounded-full scale-0 peer-checked:scale-100 transition-transform">
+                </div>
+              </div>
+              <!-- Texto descriptivo -->
+              <div class="flex flex-col gap-1 w-full">
+                <app-ui-tipografia variante="p" texto="Sin IVA"
+                  [color]="seleccion.ivaPersonalizado === 'sinIVA' ? 'text-blue-900 font-semibold' : 'text-gray-700 font-medium'"></app-ui-tipografia>
+                <app-ui-tipografia variante="p-sm" texto="Se enviará la cotización sin IVA"
+                  color="text-gray-500"></app-ui-tipografia>
+              </div>
+            </div>
+          </label>
+        </div>
+      </div>
+
+    </ng-template>
+
+  </div>
+
+  <!-- 
+    ============================================
+    FOOTER - Botones de acción
+    - Cancelar: Cierra el modal sin guardar
+    - Enviar: Ejecuta el envío de la cotización
+    ============================================
+  -->
+  <div class="w-full p-4 border-t border-neutral-200 mt-auto bg-gray-50 shrink-0">
+    <div class="flex gap-4 justify-end">
+      <app-ui-boton variante="cerrar" texto="Cancelar" (click)="cerrar()"></app-ui-boton>
+      <app-ui-boton [texto]="enviandoEmail || generandoPdf ? 'Enviando...' : 'Enviar'" (click)="enviarCotizacion()">
+      </app-ui-boton>
+    </div>
+  </div>
+</div>

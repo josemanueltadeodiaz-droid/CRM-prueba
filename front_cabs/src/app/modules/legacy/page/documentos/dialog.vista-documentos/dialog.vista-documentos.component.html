@@ -1,0 +1,383 @@
+@if(visible() && !mostrarAlertaCancelacion()) {
+<div class="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 z-40" (click)="cerrarPanel()">
+</div>
+}
+
+<!-- Modal de eliminación/advertencia (UNIFICADO) -->
+@if (mostrarAlertaEliminacion()) {
+  <app-ui-dialog-alert [tipoAlerta]="tipoAlerta()"
+    [titulo]="tipoAlerta() === 'advertencia' ? 'Para eliminar una cotización debes cancelarla primero' : '¿Estás seguro de que deseas eliminar esta cotización?'"
+    [parrafo]="tipoAlerta() === 'advertencia' ? 'La cotización debe estar cancelada antes de eliminar.' : 'La cotización será eliminada de la tabla.'"
+    [textoBotonCerrar]="tipoAlerta() === 'advertencia' ? 'Volver' : 'No, conservar'"
+    [textoBotonPrimario]="tipoAlerta() === 'advertencia' ? 'Cancelar cotización' : 'Sí, eliminar'"
+    [visualizarInput]="tipoAlerta() === 'advertencia'" labelInput="Motivo de cancelación" [inputObligatorio]="true"
+    placeholder="Escribe el motivo de cancelación..." (clicBotonSecundario)="cerrarTodo()"
+    (clicBotonPrimario)="tipoAlerta() === 'advertencia' ? confirmarCancelacion() : confirmarEliminacion()"
+    (valueChange)="onMotivoChange($event)"></app-ui-dialog-alert>
+}
+
+<!-- Modal de cancelación directa -->
+@if (mostrarAlertaCancelacion()) {
+  <app-ui-dialog-alert tipoAlerta="advertencia" titulo="¿Estás seguro de que deseas cancelar esta cotización?"
+    parrafo="La cotización será cancelada. Esta acción no se puede deshacer." textoBotonCerrar="Volver"
+    textoBotonPrimario="Cancelar cotización" [visualizarInput]="true" labelInput="Motivo de cancelación"
+    [inputObligatorio]="true" placeholder="Escribe el motivo de cancelación." (clicBotonSecundario)="cerrarTodo()"
+    (clicBotonPrimario)="confirmarCancelacion()" (valueChange)="onMotivoChange($event)"></app-ui-dialog-alert>
+}
+
+<!-- PANEL LATERAL -->
+<div
+  class="fixed right-0 top-0 bottom-0 w-full md:w-2/3 lg:w-[550px] h-auto z-50 transform transition-transform duration-300 ease-out flex flex-col bg-white rounded-2xl m-2 overflow-hidden"
+  [class.translate-x-full]="!visible()" [class.translate-x-0]="visible()"
+  (click)="$event.stopPropagation(); menuAbierto.set(false)">
+
+  @if(mostrarEsqueleto()){
+    <div class="h-auto w-full flex flex-row justify-between items-center animate-pulse p-4 border-b border-zinc-100 ">
+      <!-- Titulo y subtitulo -->
+      <div class="flex flex-col gap-2">
+        <div class="h-5 w-28 bg-gray-200 rounded"></div>
+        <div class="h-5 w-40 bg-gray-200 rounded"></div>
+      </div>
+
+      <!-- Boton cerrar-->
+      <div class="size-6 bg-gray-200 rounded"></div>
+    </div>
+
+    <!-- Skeleton Main -->
+    <div class="h-full w-full overflow-y-auto flex flex-col gap-5 mb-4 animate-pulse">
+      <!-- Datos Skeleton -->
+      <section class="flex flex-col gap-3 border-b border-zinc-100 pb-4">
+        <div class="h-5 w-32 bg-gray-200 rounded ml-4"></div>
+
+        <!-- Nombre producto skeleton -->
+        <div class="grid grid-cols-2 items-start px-4">
+          <div class="h-5 w-28 bg-gray-200 rounded"></div>
+          <div class="h-5 w-40 bg-gray-200 rounded"></div>
+        </div>
+
+        <!-- Estado skeleton -->
+        <div class="grid grid-cols-4 items-start px-4">
+          <div class="col-span-2 h-5 w-16 bg-gray-200 rounded"></div>
+          <div class="col-span-1 h-7 w-20 bg-gray-200 rounded-full"></div>
+        </div>
+
+        <!-- Código skeleton -->
+        <div class="grid grid-cols-2 items-start px-4">
+          <div class="h-5 w-16 bg-gray-200 rounded"></div>
+          <div class="h-5 w-32 bg-gray-200 rounded"></div>
+        </div>
+
+        <!-- Costo estándar skeleton -->
+        <div class="grid grid-cols-2 items-start px-4">
+          <div class="h-5 w-24 bg-gray-200 rounded"></div>
+          <div class="h-5 w-28 bg-gray-200 rounded"></div>
+        </div>
+      </section>
+
+      <!-- Precios Skeleton -->
+      <section class="flex flex-col gap-3 border-b border-zinc-100 pb-4">
+        <div class="h-5 w-20 bg-gray-200 rounded ml-4"></div>
+
+        @for (i of [1,2,3]; track i) {
+        <div class="grid grid-cols-2 items-start px-4">
+          <div class="h-5 w-16 bg-gray-200 rounded"></div>
+          <div class="h-5 w-28 bg-gray-200 rounded"></div>
+        </div>
+        }
+      </section>
+
+      <!-- Costos e Impuestos Skeleton -->
+      <section class="flex flex-col gap-3 border-b border-zinc-100 pb-4">
+        <div class="h-5 w-32 bg-gray-200 rounded ml-4"></div>
+
+        @for (i of [1,2]; track i) {
+        <div class="grid grid-cols-2 items-start px-4">
+          <div class="h-5 w-28 bg-gray-200 rounded"></div>
+          <div class="h-5 w-28 bg-gray-200 rounded"></div>
+        </div>
+        }
+      </section>
+
+      <!-- Información Adicional Skeleton -->
+      <section class="flex flex-col gap-3 border-b border-zinc-100 pb-4">
+        <div class="h-5 w-32 bg-gray-200 rounded ml-4"></div>
+
+        <div class="grid grid-cols-4 items-start px-4">
+          <div class="col-span-2 h-5 w-28 bg-gray-200 rounded"></div>
+          <div class="col-span-1 h-7 w-24 bg-gray-200 rounded-full"></div>
+        </div>
+
+        <div class="grid grid-cols-2 items-start px-4">
+          <div class="h-5 w-28 bg-gray-200 rounded"></div>
+          <div class="h-5 w-24 bg-gray-200 rounded"></div>
+        </div>
+
+        <div class="grid grid-cols-2 items-start px-4">
+          <div class="h-5 w-20 bg-gray-200 rounded"></div>
+          <div class="h-5 w-32 bg-gray-200 rounded"></div>
+        </div>
+      </section>
+    </div> 
+
+    <div class="flex justify-between p-3.5 border-t border-neutral-200 bg-neutral-50">
+      <div class="flex gap-4">
+        <div class="h-10 w-24 bg-neutral-200 rounded-lg animate-pulse"></div>
+      </div>
+      <div class="flex items-center gap-6">
+        <div class="flex gap-4 pl-6">
+          <div class="h-10 w-32 bg-neutral-200 rounded-lg animate-pulse"></div>
+          <div class="h-10 w-36 bg-neutral-200 rounded-lg animate-pulse"></div>
+        </div>
+      </div>
+    </div>    
+  }
+  @if(errorDeConexion()){
+
+  }
+  @if(monstrarDatos()){
+    <!-- Encabezao -->
+    <app-header-modal titulo="#{{ idDocumento }}" descripcion="Detalles de la cotización" (cerrarModal)="cerrarPanel()">
+      <div acciones-extra class="flex items-center gap-2">
+        <div class="relative flex gap-4" (click)="$event.stopPropagation()">
+          <div class="relative group">
+            <button class="p-2 cursor-pointer hover:bg-gray-100 rounded-full" (click)="solicitarEliminacion()"
+              title="Eliminar">
+              <app-ui-icono name="trash" size="size-5"></app-ui-icono>
+            </button>
+          </div>
+        </div>
+      </div>
+    </app-header-modal>
+
+    <!-- Contenido del modal-->
+    <div class="flex-1 gap-4 flex flex-col overflow-y-auto" [class.justify-center]="mostrarEsqueleto() || error()" [class.flex]="mostrarEsqueleto() || error()">
+
+      @if (cotizacion() && !mostrarEsqueleto() && !error()) {
+          <!-- Identificación del trabajo -->
+          <section class="flex flex-col gap-3 border-b border-zinc-100 py-4">
+            <span class="text-sm font-medium tracking-wide text-slate-800 ml-4">Información general</span>
+
+            <!-- Estado Cotización -->
+            <div class="grid grid-cols-4 items-start px-4">
+              <p class="col-span-2 text-base text-slate-500 font-medium tracking-wider">
+                Estado
+              </p>
+              @if (cotizacion(); as cot) {
+                @if (getEstadoBadge(cot).text === "ACTIVA") {
+                  <div class="col-span-1 flex justify-center items-center bg-green-100 rounded-xs px-2 py-1 w-auto h-auto">
+                    <app-ui-tipografia variante="p-sm" texto="Activo" color="text-green-800"></app-ui-tipografia>
+                  </div>
+                } @else {
+                  <div class="col-span-1 flex justify-center items-center bg-red-100 rounded-xs px-2 py-1 w-auto h-auto">
+                    <app-ui-tipografia variante="p-sm" texto="Cancelado" color="text-red-800"></app-ui-tipografia>
+                  </div>
+                }
+              }
+            </div>
+
+            <!-- Fecha de creación -->
+            <div class="grid grid-cols-2 items-start px-4">
+              <p class="text-base text-slate-500 font-medium tracking-wider">
+                Fecha de creación
+              </p>
+              <p class="text-base text-slate-800 font-medium tracking-wider">
+                {{ formatDate(cotizacion()!.fecha) }}
+              </p>
+            </div>
+          </section>
+
+          <!-- Identificación del documento -->
+          <section class="flex flex-col gap-3 border-b border-zinc-100 py-4">
+            <span class="text-sm font-medium tracking-wide text-slate-800 ml-4">Identificación</span>
+
+            <!-- Serie -->
+            <div class="grid grid-cols-2 items-start px-4">
+              <p class="text-base text-slate-500 font-medium tracking-wider">
+                Serie
+              </p>
+              <p class="text-base text-slate-800 font-medium tracking-wider">
+                {{ cotizacion()!.serieDocumento }}
+              </p>
+            </div>
+
+            <!-- Folio -->
+            <div class="grid grid-cols-2 items-start px-4">
+              <p class="text-base text-slate-500 font-medium tracking-wider">
+                Folio
+              </p>
+              <p class="text-base text-slate-800 font-medium tracking-wider">
+                {{ cotizacion()!.folio }}
+              </p>
+            </div>
+
+            <!-- ¿Tiene factura? -->
+            <div class="grid grid-cols-4 items-start px-4">
+              <p class="col-span-2 text-base text-slate-500 font-medium tracking-wider">
+                ¿Tiene factura?
+              </p>
+              @if (cotizacion(); as cot) {
+                @if (cot.facturado) {
+                  <div class="col-span-1 flex justify-center items-center bg-green-100 rounded-xs px-2 py-1 w-auto h-auto">
+                    <app-ui-tipografia variante="p-sm" texto="Con factura" color="text-green-800"></app-ui-tipografia>
+                  </div>
+                } @else {
+                  <div class="col-span-1 flex justify-center items-center bg-red-100 rounded-xs px-2 py-1 w-auto h-auto">
+                    <app-ui-tipografia variante="p-sm" texto="Sin factura" color="text-red-800"></app-ui-tipografia>
+                  </div>
+                }
+              }
+            </div>
+
+            <!-- Vencimiento -->
+            <div class="grid grid-cols-2 items-start px-4">
+              <p class="text-base text-slate-500 font-medium tracking-wider">
+                Vencimiento
+              </p>
+              <p class="text-base text-slate-800 font-medium tracking-wider">
+                {{ formatDate(cotizacion()!.fechaVencimiento) }}
+              </p>
+            </div>
+          </section>
+
+          <!-- Observaciones -->
+          @if (cotizacion()!.observaciones) {
+            <section class="flex flex-col gap-3 border-b border-zinc-100 py-4">
+              <span class="text-sm font-medium tracking-wide text-slate-800 ml-4">Observaciones</span>
+              <div class="mx-4 p-3 bg-gray-50 rounded-lg border border-zinc-200">
+                <p class="text-base text-slate-700 leading-relaxed">
+                  {{ cotizacion()!.observaciones }}
+                </p>
+              </div>
+            </section>
+          }
+
+          <!-- Cliente -->
+          <section class="flex flex-col gap-3 border-b border-zinc-100 py-4">
+            <span class="text-sm font-medium tracking-wide text-slate-800 ml-4">Cliente</span>
+            
+            <div class="flex gap-3 items-start px-4">
+              <div class="w-12 h-full flex-shrink-0">
+                <app-ui-avatar [text]="cotizacion()!.razonSocial" class="w-full h-full"></app-ui-avatar>
+              </div>
+              <div class="flex flex-col gap-1">
+                <p class="text-base text-slate-800 font-medium">
+                  {{ cotizacion()!.razonSocial }}
+                </p>
+                <p class="text-sm text-slate-500">
+                  Agente: {{ cotizacion()!.agente }}
+                </p>
+              </div>
+            </div>
+          </section>
+
+          <!-- Productos -->
+          <section class="flex flex-col gap-3 border-b border-zinc-100 py-4">
+            <div class="flex justify-between items-center px-4">
+              <span class="text-sm font-medium tracking-wide text-slate-800">Productos</span>
+              <span class="text-xs font-semibold text-blue-800 bg-blue-100 px-2 py-1 rounded">
+                {{ cotizacion()!.movimientos!.length }} productos
+              </span>
+            </div>
+
+            @for (mov of cotizacion()!.movimientos; track mov.idMovimiento) {
+              <div class="mx-4 p-3 bg-gray-50 rounded-lg border border-zinc-200 hover:border-blue-300 transition-colors">
+                <div class="flex justify-between items-start gap-4">
+                  <div class="flex-1">
+                    <div class="flex items-start gap-3">
+                      <div class="flex-shrink-0 mt-1">
+                        <app-ui-icono name="cube" size="sm"></app-ui-icono>
+                      </div>
+                      <div class="flex-1">
+                        <p class="text-base font-medium text-slate-800 mb-1" title="{{ mov.nombreProducto }}">
+                          {{ mov.nombreProducto }}
+                        </p>
+                        <div class="flex flex-wrap gap-2 text-sm text-slate-500">
+                          <span>Código: {{ mov.codigoProducto }}</span>
+                          <span>•</span>
+                          <span> -> {{ mov.unidades }} un. x {{ formatCurrency(mov.precio) }}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="text-right">
+                    <p class="text-base font-semibold text-slate-800">
+                      {{ formatCurrency(mov.neto) }}
+                    </p>
+                  </div>
+                </div>
+
+                <!-- Observaciones del producto -->
+                @if (mov.observaciones) {
+                  <div class="mt-3 pt-3 border-t border-zinc-200">
+                    <p class="text-xs font-medium text-amber-600 mb-1">Observaciones</p>
+                    <p class="text-sm text-amber-700">{{ mov.observaciones }}</p>
+                  </div>
+                }
+
+                <!-- Descuento del producto -->
+                @if (mov.descuentoLinea > 0) {
+                  <div class="mt-3 pt-3 border-t border-zinc-200">
+                    <p class="text-xs font-medium text-red-600 mb-1">Descuento</p>
+                    <p class="text-sm text-red-600">-{{ formatCurrency(mov.descuentoLinea) }}</p>
+                  </div>
+                }
+              </div>
+            }
+          </section>
+
+          <!-- Resumen -->
+          <section class="flex flex-col gap-3 py-4">
+            <span class="text-sm font-medium tracking-wide text-slate-800 ml-4">Resumen</span>
+            <div class="mx-4 p-4 bg-gray-50 rounded-lg border border-zinc-200">
+              <div class="flex justify-between items-center py-2">
+                <p class="text-base text-slate-600">Subtotal</p>
+                <p class="text-base font-medium text-slate-800">{{ formatCurrency(cotizacion()!.subtotal) }}</p>
+              </div>
+              <div class="flex justify-between items-center py-2">
+                <p class="text-base text-slate-600">IVA (16%)</p>
+                <p class="text-base font-medium text-slate-800">{{ formatCurrency(cotizacion()!.iva) }}</p>
+              </div>
+              <div class="border-t border-zinc-200 my-2"></div>
+              <div class="flex justify-between items-center pt-2">
+                <p class="text-lg font-semibold text-slate-700">Total</p>
+                <p class="text-xl font-bold text-slate-900">{{ formatCurrency(getTotalCalculado()) }}</p>
+              </div>
+            </div>
+          </section>
+        }
+    </div>  
+
+    <!-- Pie de pagina -->
+
+    <div class="flex justify-between p-3.5 border-t border-neutral-200 bg-neutral-50">
+      <div class="flex gap-4">
+        <app-ui-boton variante="cerrar" texto="Cerrar" (click)="cerrarPanel()"></app-ui-boton>
+      </div>
+      <div class="flex items-center gap-6">
+        <div class="flex gap-4 pl-6">
+          @if (cotizacion(); as cot) {
+            @if (getEstadoBadge(cot).text === "ACTIVA"){
+              <app-ui-boton variante="cerrar" texto="Cancelar cotización" (click)="solicitarCancelacion()"></app-ui-boton>
+            }
+          }
+          <app-ui-boton texto="Enviar Cotizacion" (click)="abrirModalEnviarPrueba()"></app-ui-boton>
+        </div>
+      </div>
+    </div>  
+  }
+</div>
+
+
+<!-- Modal de enviar cotizaicones -->
+
+@if(mostrarModalEnivarPrueba() && dataParaModal){
+  <app-modal-enviar-cotizacion 
+    class="fixed right-[565px] bottom-0 w-full md:w-2/3 lg:w-[450px] h-3/4 z-[60] transform transition-transform duration-300 ease-out flex flex-col bg-[#FCFFF9] rounded-2xl m-2 overflow-hidden"
+    [idCotizacion]="dataParaModal.idCotizacion ?? 0"
+    [cliente]="dataParaModal.cliente"
+    [cotizacion]="dataParaModal.cotizacion"
+    [modo]="'enviar'"
+    (cerrar)="cerrarPanel(); mostrarModalEnivarPrueba.set(false); dataParaModal = null"
+    (enviado)="handleEnviado($event)">
+  </app-modal-enviar-cotizacion>
+}

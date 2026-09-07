@@ -1,0 +1,110 @@
+<!-- Contenido Modal -->
+<div class=" flex flex-col justify-between h-full">
+  <!-- Header -->
+  <app-header-modal
+      [titulo]="'#' + viatico?.id"
+      descripcion="Detalles del viatico"
+      (click)="onCerrar()"
+  ></app-header-modal>
+  <!-- Contenido -->
+  <div class="flex flex-col gap-4 overflow-y-auto my-4">
+    <!-- Identificacion del trabajo -->
+    <div class="flex flex-col gap-4 ">
+      <div class="flex flex-col gap-4 mx-4">
+          <!-- Subtitulo -->
+          <span class="font-medium text-sm text-slate-600">Identificación del trabajo</span>
+          
+          <!-- Fecha creacion -->
+          <div class="grid grid-cols-2">
+            <span class="font-normal text-base text-slate-500">Fecha de creación</span>
+            <span class="font-medium text-base text-slate-700">{{ viatico?.fecha }}</span>
+          </div>
+          
+          <!-- Proveedor -->
+          <div class="grid grid-cols-2">
+            <span class="font-normal text-base text-slate-500">Proveedor</span>
+            <span class="font-medium text-base text-slate-700">{{ viatico?.proveedorNombre }}</span>
+          </div>
+          
+          <!-- Tiene factura -->
+          <div class="grid grid-cols-2 items-center">
+            <span class=" font-normal text-base text-slate-500">¿Tiene factura?</span>
+            @if (viatico?.tieneFactura == true) {
+              <div class="grid grid-cols-2">
+                <span class=" bg-green-100 text-green-800 px-2 py-0.5 text-sm rounded-xs">
+                  Con Factura
+                </span>
+              </div>
+
+            }
+            @if (viatico?.tieneFactura == false) {
+              <div class="grid grid-cols-2">
+                <span class="bg-gray-100 text-gray-800 px-2 py-0.5 text-sm rounded-full">
+                  Sin Factura
+                </span>
+              </div>              
+            }
+          </div>
+      </div>
+    </div>
+    
+    <hr class="border-slate-200">
+    
+    <!-- Detalle del gasto -->
+    <div class="flex flex-col gap-2">
+        <div class="flex flex-col gap-4 mx-4">
+          <!-- Subtitulo (corregido el texto repetido) -->
+          <span class="font-medium text-sm text-slate-600">Detalle del gasto</span>
+          
+          <!-- Detalles del gasto -->
+          <div class="grid grid-cols-2">
+            <span class="font-normal text-base text-slate-500">Detalles del gasto</span>
+            <span class="font-medium text-base text-slate-700">{{ viatico?.gastos }}</span>
+          </div>
+          
+          <!-- Descripción -->
+          <div class="grid grid-cols-2">
+            <span class="font-normal text-base text-slate-500">Descripción</span>
+            <span class="font-medium text-base text-slate-700">{{ viatico?.descripcion }}</span>
+          </div>
+        </div>
+    </div>
+
+    <hr class="border-slate-200">
+
+    <!-- Logistica -->
+    <div class="flex flex-col gap-2">
+        <div class="flex flex-col gap-2 mx-4">
+          <span class="font-medium text-sm text-slate-600">Logistica</span>
+          
+          <!-- Destino -->
+          <div class="grid grid-cols-2">
+            <span class="font-normal text-base text-slate-500">Destino</span>
+            <span class="font-medium text-base text-slate-700">{{ viatico?.lugarDestino }}</span>
+          </div>
+          
+          <!-- Kilometros -->
+          <div class="grid grid-cols-2">
+            <span class="font-normal text-base text-slate-500">Km</span>
+            <span class="font-medium text-base text-slate-700">{{ viatico?.kmRecorridos }} Km</span>
+          </div>
+        </div>
+    </div>
+
+  </div>
+
+  <!-- Pie de pagina --> 
+  <div class=" border-t border-slate-200 p-4">
+    <app-ui-tipografia
+      variante="caption-lg"
+      texto="Gasto"
+    ></app-ui-tipografia>      
+    <!-- Monto total  -->
+    <div class="flex gap-8">
+      <app-ui-tipografia
+        variante="h4"
+        [texto]="'$'+ viatico?.montoTotal + ' MXN'"
+      ></app-ui-tipografia>
+    </div>
+  </div>      
+</div>

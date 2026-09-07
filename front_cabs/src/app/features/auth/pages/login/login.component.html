@@ -1,0 +1,142 @@
+<div class="min-h-screen flex flex-col bg-gray-50">
+  <div class="flex flex-1">
+    <!--
+      CONTENEDOR IZQUIERDO - LADO DE MARKETING/PROMOCIONAL
+    -->
+    <div class="hidden lg:flex w-full lg:w-1/2 bg-gradient-to-br from-[#0f172a] via-[#1e3a8a] to-[#0a1f44] items-center justify-center px-12 pt-12 pb-0 relative shadow-lg">
+      <div class="flex flex-col gap-4 w-full max-w-md">
+        <!-- Encabezado principal -->
+        <div class="gap-2 flex flex-col text-center">
+          <app-ui-tipografia
+            variante="h1"
+            texto="¡Bienvenido!"
+            color="text-white"
+          ></app-ui-tipografia>
+          <app-ui-tipografia
+            variante="p-sm"
+            texto="Gestiona tu negocio de manera eficiente con nuestra plataforma integral."
+            color="text-white"
+          ></app-ui-tipografia>
+        </div>
+        <!-- Lista de características de la plataforma -->
+        <div class="space-y-4">
+          <div class="shadow-lg flex items-center bg-blue-800/40 p-4 rounded-lg backdrop-blur-sm border border-blue-600/30 gap-2">
+            <app-ui-icono name="check-circle" size="size-8" color="text-white"></app-ui-icono>
+            <app-ui-tipografia variante="p-lg" texto="Administración completa" color="text-white"></app-ui-tipografia>
+          </div>
+          <div class="shadow-lg flex items-center bg-blue-800/40 p-4 rounded-lg backdrop-blur-sm border border-blue-600/30 gap-2">
+            <app-ui-icono name="check-circle" size="size-8" color="text-white"></app-ui-icono>
+            <app-ui-tipografia variante="p-lg" texto="Soporte 24/7" color="text-white"></app-ui-tipografia>
+          </div>
+          <div class="shadow-lg flex items-center bg-blue-800/40 p-4 rounded-lg backdrop-blur-sm border border-blue-600/30 gap-2">
+            <app-ui-icono name="check-circle" size="size-8" color="text-white"></app-ui-icono>
+            <app-ui-tipografia variante="p-lg" texto="Seguridad empresarial" color="text-white"></app-ui-tipografia>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!--
+      CONTENEDOR DERECHO - FORMULARIO DE INICIO DE SESIÓN
+      CENTRADO TANTO HORIZONTAL COMO VERTICALMENTE
+    -->
+    <div class="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12"> <!-- items-center y justify-center -->
+      <!-- Este contenedor está centrado en ambos ejes dentro de su padre -->
+      <div class="w-full max-w-md mx-auto"> <!-- mx-auto para centrado horizontal -->
+        <div class="flex flex-col gap-8"> <!-- Quitado flex-1 y justify-center -->
+          <!-- Encabezado del formulario -->
+          <div class="gap-2 flex flex-col text-center">
+            <app-ui-tipografia
+              variante="h1"
+              texto="Iniciar Sesión"
+              class="text-center"
+            ></app-ui-tipografia>
+            <app-ui-tipografia
+              variante="p-sm"
+              texto="Ingresa tus credenciales para acceder."
+              class="text-center"
+            ></app-ui-tipografia>
+          </div>
+
+          <!-- Mensaje de error -->
+          @if (errorMessage) {
+            <div class="flex items-center p-4 rounded-lg bg-red-50 text-red-800 border border-red-200">
+              <span class="text-sm font-medium">{{ errorMessage }}</span>
+            </div>
+          }
+
+          <!-- Mensaje de éxito -->
+          @if (successMessage) {
+            <div class="flex items-center p-4 rounded-lg bg-green-50 text-green-800 border border-green-200">
+              <span class="text-sm font-medium">{{ successMessage }}</span>
+            </div>
+          }
+
+          <!-- Formulario Reactivo de Angular -->
+          <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-6">
+
+            <!-- Campo: Correo Electrónico -->
+            <div class="space-y-1">
+              <app-ui-input-field
+                formControlName="email"
+                label="Correo Electrónico"
+                [labelObligatorio]="true"
+                placeholder="usuario@ejemplo.com"
+                variant="email"
+                nombreIcono="envelope"
+                [textoError]="(loginForm.get('email')?.touched && loginForm.get('email')?.invalid) ? 'Correo requerido o formato inválido' : ''">
+              </app-ui-input-field>
+            </div>
+
+            <!-- Campo: Contraseña -->
+            <div class="space-y-1">
+              <app-ui-input-field
+                formControlName="password"
+                label="Contraseña"
+                [labelObligatorio]="true"
+                placeholder="Tu contraseña"
+                variant="password"
+                nombreIcono="lock-closed"
+                [textoError]="(loginForm.get('password')?.touched && loginForm.get('password')?.invalid) ? 'Mínimo 6 caracteres' : ''">
+              </app-ui-input-field>
+            </div>
+
+            <!-- Enlace para recuperar contraseña -->
+            <div class="flex items-center justify-end">
+              <a routerLink="/auth/forgot-password" class="text-sm font-normal text-blue-600 hover:text-blue-700 hover:underline">
+                ¿Olvidaste tu contraseña?
+              </a>
+            </div>
+
+            <!-- Botón de envío del formulario -->
+            <div class="mt-8">
+              <app-ui-boton
+                variante="primario"
+                tipo="submit"
+                texto="Iniciar Sesión"
+                [estaCargando]="isLoading"
+                [estaDeshabilitado]="loginForm.invalid || isLoading"
+                [anchoCompleto]="true"
+                textoAlCargar="Iniciando...">
+              </app-ui-boton>
+            </div>
+          </form>
+
+          <!-- Indicador de seguridad - Separado del formulario -->
+          <div class="text-center pt-8 flex flex-row items-center justify-center gap-1"> <!-- pt-8 para separación -->
+            <app-ui-icono
+              name="shield-check"
+              size="size-4"
+              color="text-green-500"
+            ></app-ui-icono>
+            <app-ui-tipografia
+              variante="caption-sm"
+              texto="Conexión segura y protegida"
+              class="text-center"
+            ></app-ui-tipografia>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

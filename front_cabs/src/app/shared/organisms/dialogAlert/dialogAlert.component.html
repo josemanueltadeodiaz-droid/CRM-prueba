@@ -1,0 +1,109 @@
+@switch (tipoAlerta) {
+  @case ('eliminar') {
+    <!-- Contenedor principal del modal -->
+    <div class="fixed inset-0 z-[100]">
+      <!-- Backdrop -->
+      <div class="fixed inset-0 bg-black/60 backdrop-blur-sm"></div>
+      
+      <!-- Modal centrado -->
+      <div class="fixed inset-0 flex items-center justify-center">
+        <div class="bg-white flex flex-col gap-5 rounded-3xl w-[412px] p-6 border border-neutral-200 animate-in fade-in zoom-in duration-200" (click)="$event.stopPropagation()">
+          <!-- Icono trash -->
+          <div class="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mx-auto">
+            <app-ui-icono name="trash" size="size-7" color="text-red-500"></app-ui-icono>
+          </div>
+          <!-- Titulo + Parrafo -->
+          <div class="flex flex-col gap-2">
+              <!-- Titulo -->
+              <app-ui-tipografia variante="h4" [texto]="titulo" color="text-gray-900" class="text-center"></app-ui-tipografia>
+              <!-- Parrafo -->
+              <app-ui-tipografia variante="p-md" [texto]="parrafo" class="text-center"></app-ui-tipografia>
+          </div>
+          <div class="flex gap-3">
+            <!-- Boton de cancelar -->
+            <button class="flex-1 cursor-pointer px-4 py-2.5 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors" (click)="clicBotonSecundario.emit($event)">
+              {{ textoBotonCerrar }}
+            </button>
+            <!-- Boton de eliminar -->
+            <button class="flex-1 cursor-pointer px-4 py-2.5 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors" (click)="clicBotonPrimario.emit($event)">
+              {{ textoBotonPrimario }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+  
+  @case ('advertencia') {
+    <!-- Contenedor principal del modal -->
+    <div class="fixed inset-0 z-[100]">
+      <!-- Backdrop -->
+      <div class="fixed inset-0 bg-black/60 backdrop-blur-sm"></div>
+      
+      <!-- Modal centrado -->
+      <div class="fixed inset-0 flex items-center justify-center h-auto w-auto">
+        <div class="bg-white flex flex-col gap-5 rounded-3xl w-[412px] p-6 border border-neutral-200 animate-in fade-in zoom-in duration-200" (click)="$event.stopPropagation()">
+          <!-- Icono advertencia -->
+          <div class="w-14 h-14 bg-yellow-100 rounded-full flex items-center justify-center mx-auto">
+            <app-ui-icono name="exclamation-triangle" size="size-7" color="text-yellow-500"></app-ui-icono>
+          </div>
+          <!-- Texto y input -->
+          <div class="flex flex-col gap-4"> 
+            <!-- Titulo + Parrafo -->
+            <div class="flex flex-col gap-2">
+              <!-- Titulo -->
+              <app-ui-tipografia variante="h4" [texto]="titulo" color="text-gray-900" class="text-start"></app-ui-tipografia>
+              <!-- Parrafo -->
+              <app-ui-tipografia variante="p-md" [texto]="parrafo" class="text-start"></app-ui-tipografia>
+            </div>
+            @if(visualizarInput){
+              <app-ui-input-field [label]="labelInput" variant="textarea" [placeholder]="plaseHolder" [labelObligatorio]="inputObligatorio" [visualizarIcono]="false"   (valueChange)="valueChange.emit($event)" ></app-ui-input-field>
+            }
+
+          </div>
+          <div class="flex gap-3">
+            <!-- Boton de cancelar -->
+            <button class="flex-1 cursor-pointer px-4 py-2.5 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors" (click)="clicBotonSecundario.emit($event)">
+              {{ textoBotonCerrar }}
+            </button>
+            <!-- Boton de confirmar -->
+            <button class="flex-1 cursor-pointer px-4 py-2.5 bg-yellow-600 text-white text-sm font-medium rounded-lg hover:bg-yellow-700 transition-colors" (click)="clicBotonPrimario.emit($event)">
+              {{ textoBotonPrimario }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+  
+  @case ('aprovado') {
+    <!-- Contenedor principal del modal -->
+    <div class="fixed inset-0 z-[100]">
+      <!-- Backdrop -->
+      <div class="fixed inset-0 bg-black/60 backdrop-blur-sm"></div>
+      
+      <!-- Modal centrado -->
+      <div class="fixed inset-0 flex items-center justify-center">
+        <div class="bg-white flex flex-col gap-5 rounded-3xl w-[412px] p-6 border border-neutral-200 animate-in fade-in zoom-in duration-200" (click)="$event.stopPropagation()">
+          <!-- Icono check -->
+          <div class="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+            <app-ui-icono name="check-circle" size="size-7" color="text-green-600"></app-ui-icono>
+          </div>
+          <!-- Titulo + Parrafo -->
+          <div class="flex flex-col gap-2">
+            <!-- Titulo -->
+            <app-ui-tipografia variante="h4" [texto]="titulo" color="text-gray-900" class="text-center"></app-ui-tipografia>
+            <!-- Parrafo -->
+            <app-ui-tipografia variante="p-md" [texto]="parrafo" class="text-center"></app-ui-tipografia>
+          </div>
+          <div class="flex gap-3">
+            <!-- Boton de aceptar -->
+            <button class="flex-1 cursor-pointer px-4 py-2.5 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors" (click)="clicBotonPrimario.emit($event)">
+              {{ textoBotonPrimario }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }     
+}

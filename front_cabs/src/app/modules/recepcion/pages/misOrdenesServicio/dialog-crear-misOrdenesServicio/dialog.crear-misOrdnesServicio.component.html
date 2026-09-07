@@ -1,0 +1,304 @@
+@if (visible()) {
+  <div class="fixed inset-0 bg-black/50 backdrop-blur-sm z-40" (click)="cerrarPanel()"></div>
+}
+
+<div
+  class="fixed right-0 top-0 bottom-0 w-full md:w-2/3 lg:w-[760px] z-50 transform transition-transform duration-300 flex flex-col bg-white rounded-2xl m-2 overflow-visible shadow-2xl"
+  [class.translate-x-full]="!visible()" [class.translate-x-0]="visible()"
+  (click)="$event.stopPropagation()">
+
+  <app-header-modal titulo="Crear orden de servicio" descripcion="Completa el formulario" (cerrarModal)="cerrarPanel()"></app-header-modal>
+
+  <div class="flex-1 overflow-y-auto overflow-x-visible p-6 space-y-5">
+    <section class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+      <h3 class="text-lg font-semibold text-gray-800 mb-3">Selecciona el cliente</h3>
+      @if (!clienteSeleccionado) {
+        <div class="relative">
+          <input type="text" [(ngModel)]="busquedaCliente"
+            (input)="onBusquedaClienteInput()"
+            (keydown.enter)="buscarClientes(); $event.preventDefault()"
+            placeholder="Buscar por Razón Social o RFC..." name="busquedaCliente"
+            class="w-full border border-gray-200 rounded-xl py-3 pl-10 pr-24 text-sm bg-gray-50 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-50 transition-all" />
+
+          <div class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </div>
+
+          <button (click)="buscarClientes()" type="button"
+            class="absolute right-2 top-1/2 -translate-y-1/2 bg-blue-600 text-white border-none rounded-lg px-4 py-2 text-sm font-medium flex items-center gap-2 hover:bg-blue-700 transition-all">
+            @if (loadingClientes) {
+              <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                </path>
+              </svg>
+            } @else {
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+            } Buscar
+          </button>
+
+          @if (clientesResultados.length > 0) {
+            <div class="absolute top-[calc(100%+0.5rem)] left-0 right-0 bg-white border border-gray-100 rounded-xl max-h-[320px] overflow-y-auto z-100 shadow-sm">
+              @for (cliente of clientesResultados; track cliente.idCliente) {
+                <div (click)="seleccionarCliente(cliente)"
+                  class="p-4 border-b border-gray-100 cursor-pointer transition-all hover:bg-blue-50 hover:pl-5">
+                  <div class="text-base font-semibold text-blue-600">{{ cliente.razonSocial }}</div>
+                  <div class="text-sm text-gray-600"><span class="font-medium text-gray-500">RFC:</span> {{ cliente.rfc }}</div>
+                  <div class="text-sm text-gray-600"><span class="font-medium text-gray-500">Dirección:</span> {{ cliente.ubicacion }}</div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="flex justify-between items-center p-4 bg-blue-50 border border-blue-100 rounded-xl">
+          <div class="flex flex-col">
+            <span class="font-semibold text-blue-700">{{ clienteSeleccionado.razonSocial }}</span>
+            <span class="text-xs text-blue-700">RFC: {{ clienteSeleccionado.rfc }}</span>
+            <span class="text-xs text-gray-600">Dirección: {{ clienteSeleccionado.ubicacion }}</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <button (click)="clienteSeleccionado = null; busquedaCliente = ''; clientesResultados = []; model.direccionGoogleMaps=''; model.latitud=null; model.longitud=null; busquedaMapa=''; mostrarBuscadorDireccion=false;"
+              class="text-xs text-gray-600 bg-white border border-gray-200 px-3 py-1 rounded-md hover:text-red-600 hover:border-red-600 transition-colors">
+              Cambiar
+            </button>
+          </div>
+        </div>
+      }
+    </section>
+
+    @if (clienteSeleccionado) {
+      <section class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+        <div class="flex items-center justify-between">
+          <h3 class="text-lg font-semibold text-gray-800">Tipo de atención</h3>
+          <p class="text-sm text-gray-500">Selecciona cómo se dará la atención</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+          <button type="button" (click)="onTipoAtencionChange(true)"
+            class="text-left border rounded-xl p-4 transition-all hover:shadow-md"
+            [class.border-blue-500]="model.esVirtual === true"
+            [class.bg-blue-50]="model.esVirtual === true"
+            [class.border-gray-200]="model.esVirtual !== true">
+            <h4 class="font-medium text-gray-800">Virtual</h4>
+            <p class="text-sm text-gray-500 mt-1">Atención remota. Solo se solicitarán credenciales escritas.</p>
+          </button>
+
+          <button type="button" (click)="onTipoAtencionChange(false)"
+            class="text-left border rounded-xl p-4 transition-all hover:shadow-md"
+            [class.border-blue-500]="model.esVirtual === false"
+            [class.bg-blue-50]="model.esVirtual === false"
+            [class.border-gray-200]="model.esVirtual !== false">
+            <h4 class="font-medium text-gray-800">Presencial</h4>
+            <p class="text-sm text-gray-500 mt-1">Atención en la ubicación del cliente. La dirección se mostrará en el mapa.</p>
+          </button>
+        </div>
+      </section>
+
+      @if (model.esVirtual === false) {
+        <section class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="text-md font-medium text-gray-800">Ubicación (dirección del cliente)</h3>
+            <button type="button"
+              class="text-xs text-blue-700 border border-blue-200 bg-blue-50 px-3 py-1 rounded-md hover:bg-blue-100"
+              (click)="preguntarModificarDireccion()">
+              Modificar dirección
+            </button>
+          </div>
+
+          @if (mostrarBuscadorDireccion) {
+            <label class="block text-sm font-medium text-gray-700 mb-1">Buscar calle o lugar</label>
+            <input
+              #searchInput
+              type="text"
+              [(ngModel)]="busquedaMapa"
+              name="busquedaMapa"
+              placeholder="Escribe una dirección o lugar"
+              class="w-full px-3 py-2 border rounded-lg bg-white mb-3"
+            />
+          }
+
+          <div class="text-sm text-gray-600 mb-3">{{ model.direccionGoogleMaps || clienteSeleccionado?.ubicacion }}</div>
+
+          <div class="flex flex-wrap gap-2 mb-3">
+            <button type="button"
+              class="text-xs text-gray-700 border border-gray-200 bg-white px-3 py-1 rounded-md hover:bg-gray-50"
+              (click)="centrarEnDurango()">
+              Centrar en Durango
+            </button>
+          </div>
+
+          <div class="border rounded-xl overflow-hidden">
+            <div #mapContainer class="w-full h-[300px] bg-gray-100"></div>
+          </div>
+        </section>
+      }
+
+      @if (model.esVirtual === true) {
+        <section class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+          <h3 class="text-md font-medium text-gray-800 mb-2">Credenciales TeamViewer</h3>
+          <p class="text-sm text-gray-500 mb-3">Ingresa las credenciales necesarias para la atención remota.</p>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">ID</label>
+              <input type="text" [(ngModel)]="teamViewerId" name="teamViewerId"
+                placeholder="Ej. 123456789"
+                class="w-full px-3 py-2 border rounded-lg bg-gray-50 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-50 transition-all" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">PASSWORD</label>
+              <input type="text" [(ngModel)]="teamViewerPassword" name="teamViewerPassword"
+                placeholder="Ej. abc123"
+                class="w-full px-3 py-2 border rounded-lg bg-gray-50 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-50 transition-all" />
+            </div>
+          </div>
+        </section>
+      }
+
+      <section class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+        <h3 class="text-lg font-semibold text-gray-800 mb-3">Información general</h3>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Nombre del solicitante</label>
+            <input type="text" [(ngModel)]="model.nombreSolicitante" name="nombreSolicitante" class="w-full px-3 py-2 border rounded-lg bg-white"/>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Nombre del destinatario</label>
+            <input type="text" [(ngModel)]="model.nombreDestinatario" name="nombreDestinatario" class="w-full px-3 py-2 border rounded-lg bg-white"/>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Agente principal *</label>
+            <select [(ngModel)]="model.agentePrincipal" name="agentePrincipal"
+              (ngModelChange)="onAgentePrincipalChange()" class="w-full px-3 py-2 border rounded-lg bg-white">
+              <option [ngValue]="0">Selecciona un agente...</option>
+              @for (ag of agentes; track ag.id) {
+                <option [ngValue]="ag.id">{{ ag.nombre }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="relative">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Agentes auxiliares</label>
+            <button type="button" class="w-full px-3 py-2 border rounded-lg text-left bg-white"
+              (click)="toggleDropdownAuxiliares($event)">
+              {{ textoAuxiliaresSeleccionados }}
+            </button>
+            @if (mostrarDropdownAuxiliares) {
+              <div class="absolute z-20 mt-1 w-full max-h-56 overflow-auto border rounded-lg bg-white shadow"
+                (click)="$event.stopPropagation()">
+                @for (ag of agentesAuxiliaresDisponibles; track ag.id) {
+                  <label class="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 cursor-pointer">
+                    <input type="checkbox" [checked]="estaAuxiliarSeleccionado(ag.id)" (change)="toggleAuxiliar($event, ag.id)"/>
+                    <span>{{ ag.nombre }}</span>
+                  </label>
+                }
+              </div>
+            }
+          </div>
+
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Problema</label>
+            <textarea [(ngModel)]="model.observaciones" name="observaciones" rows="3" class="w-full px-3 py-2 border rounded-lg bg-white"></textarea>
+          </div>
+        </div>
+      </section>
+
+      <section class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+        <h3 class="text-lg font-semibold text-gray-800 mb-2">Agregar evento en Google Calendar</h3>
+        <div class="flex items-center gap-4 mb-3">
+          <label class="inline-flex items-center gap-2">
+            <input type="radio" name="agregarCalendario" [value]="true" [(ngModel)]="agregarEventoCalendario"/>
+            <span class="text-sm text-gray-700">Sí</span>
+          </label>
+          <label class="inline-flex items-center gap-2">
+            <input type="radio" name="agregarCalendario" [value]="false" [(ngModel)]="agregarEventoCalendario"/>
+            <span class="text-sm text-gray-700">No</span>
+          </label>
+        </div>
+
+        @if (agregarEventoCalendario) {
+          <div>
+            <div class="mb-3">
+              <label class="block text-sm font-medium text-gray-700 mb-1">Título del evento *</label>
+              <input type="text" [(ngModel)]="model.tituloEvento" name="tituloEventoCalendario"
+                placeholder="Ej. Reunión con cliente" class="w-full px-3 py-2 border rounded-lg bg-white" />
+            </div>
+
+            <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de evento</label>
+            <div class="flex gap-3 items-center mb-3">
+              <label class="inline-flex items-center gap-2">
+                <input type="radio" name="tipoEventoCalendario" [value]="'bloque'" [(ngModel)]="tipoEventoCalendario"/>
+                <span class="text-sm text-gray-700">Bloque (con hora)</span>
+              </label>
+              <label class="inline-flex items-center gap-2">
+                <input type="radio" name="tipoEventoCalendario" [value]="'todoDia'" [(ngModel)]="tipoEventoCalendario"/>
+                <span class="text-sm text-gray-700">Todo el día</span>
+              </label>
+            </div>
+
+            @if (tipoEventoCalendario === 'bloque') {
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label class="text-sm text-gray-600">Inicio</label>
+                  <input type="datetime-local" [(ngModel)]="calendarioInicio" name="calInicio" class="w-full px-3 py-2 border rounded-lg bg-white"/>
+                </div>
+                <div>
+                  <label class="text-sm text-gray-600">Fin</label>
+                  <input type="datetime-local" [(ngModel)]="calendarioFin" name="calFin" class="w-full px-3 py-2 border rounded-lg bg-white"/>
+                </div>
+              </div>
+            }
+            @if (tipoEventoCalendario === 'todoDia') {
+              <div>
+                <label class="text-sm text-gray-600">Día (solo día)</label>
+                <input type="date" [(ngModel)]="calendarioDia" name="calDia" class="w-full px-3 py-2 border rounded-lg bg-white"/>
+              </div>
+            }
+          </div>
+        }
+      </section>
+    }
+  </div>
+
+  <div class="flex justify-between p-3.5 border-t bg-neutral-50">
+    <app-ui-boton variante="cerrar" texto="Cancelar" (alClickear)="cerrarPanel()"></app-ui-boton>
+    <app-ui-boton variante="primario" texto="Registrar orden" [estaCargando]="cargando()" (alClickear)="registrarOrden()"></app-ui-boton>
+  </div>
+</div>
+
+<app-ui-dialog-alert
+  *ngIf="showConfirm"
+  [tipoAlerta]="'advertencia'"
+  [titulo]="confirmTitulo"
+  [parrafo]="confirmParrafo"
+  [textoBotonCerrar]="'Cancelar'"
+  [textoBotonPrimario]="'Aceptar'"
+  [visualizarInput]="false"
+  (clicBotonPrimario)="onConfirmDialogAccept($event)"
+  (clicBotonSecundario)="onConfirmDialogCancel($event)"
+  (valueChange)="onConfirmDialogValueChange($event)"
+></app-ui-dialog-alert>
+
+<app-ui-dialog-alert
+  *ngIf="showAddressConfirm"
+  [tipoAlerta]="'advertencia'"
+  [titulo]="addressConfirmTitle"
+  [parrafo]="addressConfirmText"
+  [textoBotonCerrar]="'No'"
+  [textoBotonPrimario]="'Sí'"
+  [visualizarInput]="false"
+  (clicBotonPrimario)="onAddressConfirmAccept()"
+  (clicBotonSecundario)="onAddressConfirmCancel()"
+></app-ui-dialog-alert>

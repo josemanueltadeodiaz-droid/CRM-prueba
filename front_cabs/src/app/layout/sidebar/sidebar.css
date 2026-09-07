@@ -1,0 +1,547 @@
+/* ============================================
+   SIDEBAR - Estilos Principales
+   ============================================ */
+
+/* Contenedor principal del sidebar */
+.sidebar-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+  max-width: 280px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebar-container.collapsed {
+  max-width: 88px;
+  width: 88px;
+  box-shadow: none;
+}
+
+/* Botón toggle */
+.sidebar-toggle-btn {
+  position: absolute;
+  top: 35px;
+  right: 0;
+  transform: translateX(12px);
+  display: grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 9999px;
+  background-color: white;
+  color: black;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.sidebar-toggle-btn:hover {
+  background-color: #eff6ff;
+}
+
+.collapsed .sidebar-toggle-btn svg {
+  transform: rotate(180deg);
+}
+
+/* Logo */
+.sidebar-logo {
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo-full {
+  height: 3rem;
+  width: auto;
+}
+
+.logo-small {
+  width: 3rem;
+  height: 3rem;
+}
+
+/* Navegación principal */
+.sidebar-nav-container {
+  padding: 0 1.5rem 1rem;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.sidebar-nav-secondary {
+  padding: 1rem 1.5rem 1rem;
+}
+
+/* Sección title */
+.nav-section-title {
+  padding: 0 1rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0;
+}
+
+/* Espaciado entre secciones */
+.nav-section-title:not(:first-of-type) {
+  margin-top: 1.5rem;
+}
+
+/* Lista de navegación */
+.nav-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+/* Wrapper para items con submenú */
+.nav-item-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Contenedor del item de navegación (padre + botón toggle) */
+.nav-item-container {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  position: relative;
+  border-radius: 9999px;
+  transition: background-color 0.2s ease;
+}
+
+.nav-item-container:hover {
+  background-color: #f9fafb;
+}
+
+.nav-item-container:has(.nav-link.active) {
+  background-color: #eff2ff;
+}
+
+/* Links de navegación */
+.nav-link {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 9999px;
+  font-weight: 500;
+  font-size: 0.875rem;
+  color: #64748b;
+  text-decoration: none;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  border: none;
+  background: transparent;
+}
+
+/* Eliminamos el hover del nav-link individual porque ahora está en el contenedor */
+.nav-link:hover {
+  background-color: transparent;
+}
+
+.nav-link.collapsed {
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+}
+
+/* Cuando el sidebar está colapsado, el nav-link ocupa todo el ancho */
+.sidebar-container.collapsed .nav-link {
+  width: 100%;
+  justify-content: center;
+}
+
+/* Botón toggle separado */
+.submenu-toggle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  margin-right: 0.5rem;
+  background: transparent;
+  border: none;
+  border-radius: 9999px;
+  cursor: pointer;
+  color: #64748b;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.submenu-toggle-btn:hover {
+  background-color: #e5e7eb;
+  color: oklch(42.4% 0.199 265.638);
+}
+
+.submenu-toggle-btn.expanded svg {
+  transform: rotate(180deg);
+}
+
+.submenu-toggle-btn svg {
+  transition: transform 0.2s ease;
+  width: 1rem;
+  height: 1rem;
+}
+
+/* Ocultar botón toggle cuando el sidebar está colapsado */
+.sidebar-container.collapsed .submenu-toggle-btn {
+  display: none;
+}
+
+/* Icon wrapper */
+.nav-icon-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  flex-shrink: 0;
+}
+
+.nav-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+/* Notification badge */
+.nav-notify-badge {
+  position: absolute;
+  right: -0.25rem;
+  top: -0.25rem;
+  display: block;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+  background-color: #f97316;
+  border: 2px solid white;
+}
+
+/* Label */
+.nav-label {
+  flex: 1;
+  color: #64748b;
+  font-size: 0.875rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Submenu container */
+.submenu-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding-left: 1rem;
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Submenu link */
+.submenu-link {
+  padding: 0.5rem 1rem;
+  padding-left: 2.5rem;
+  font-size: 0.813rem;
+  position: relative;
+  border-radius: 9999px;
+  color: #64748b;
+  transition: all 0.2s ease;
+}
+
+.submenu-link:hover {
+  background-color: #f3f4f6;
+}
+
+.submenu-indicator {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 9999px;
+  background-color: #cbd5e1;
+}
+
+/* Divider */
+.sidebar-divider {
+  width: 100%;
+  height: 1px;
+  background-color: #f1f5f9;
+  margin: 1rem 0;
+}
+
+/* Footer usuario */
+.sidebar-footer {
+  margin-top: auto;
+  width: 100%;
+  border-top: 1px solid #f1f5f9;
+}
+
+.user-button {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  background-color: white;
+  padding: 1.5rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.user-button:hover {
+  background-color: #f9fafb;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.user-avatar {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 9999px;
+  background-color: #111827;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: white;
+}
+
+.user-details {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  line-height: 1.25;
+}
+
+.user-name {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #1f2937;
+  margin: 0;
+}
+
+.user-role {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+/* Icon sizes */
+.icon-sm {
+  width: 1rem;
+  height: 1rem;
+}
+
+.icon-xs {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+/* Scrollbar personalizado */
+.sidebar-nav-container::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar-nav-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar-nav-container::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+
+.sidebar-nav-container::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .sidebar-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 50;
+    transform: translateX(-100%);
+    max-width: 280px;
+    width: 280px;
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  }
+  
+  .sidebar-container.mobile-open {
+    transform: translateX(0);
+  }
+
+  /* Ocultar botón toggle de desktop en mobile */
+  .sidebar-toggle-btn {
+    display: none;
+  }
+}
+
+/* ============================================
+   ESTILOS PARA SIDEBAR COLAPSADO - ACTUALIZADOS
+   ============================================ */
+
+/* Estado collapsed - ajustes adicionales */
+.sidebar-container.collapsed .nav-section-title {
+  display: none;
+}
+
+.sidebar-container.collapsed .nav-label {
+  display: none;
+}
+
+.sidebar-container.collapsed .nav-link {
+  padding: 0.75rem;
+  justify-content: center;
+}
+
+.sidebar-container.collapsed .nav-icon-wrapper {
+  margin: 0;
+}
+
+/* NUEVO: Gap de 8px entre íconos cuando el sidebar está colapsado */
+.sidebar-container.collapsed .nav-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem; /* 8px en hexadecimal sería 0.5rem, pero usamos px directamente */
+}
+
+.sidebar-container.collapsed .nav-item-container {
+  justify-content: center;
+}
+
+.sidebar-container.collapsed .nav-link {
+  padding: 0.5rem; /* Ajustamos el padding para mejor espaciado */
+}
+
+.sidebar-container.collapsed .nav-icon-wrapper {
+  margin: 0; /* Aseguramos que no haya márgenes adicionales */
+}
+
+/* ============================================
+   ESTILOS PARA ESTADOS ACTIVOS - CORREGIDOS
+   ============================================ */
+
+/* Estilos para cuando el padre tiene un hijo activo */
+.nav-item-container.active-parent {
+  background-color: #eff2ff;
+}
+
+/* Para el nav-link del padre cuando está activo por hijo */
+.nav-item-container.active-parent .nav-link {
+  color: oklch(42.4% 0.199 265.638);
+  font-weight: 600;
+}
+
+/* Para el icon wrapper cuando el padre está activo (por hijo activo) */
+.nav-item-container.active-parent .nav-icon-wrapper {
+  color: oklch(42.4% 0.199 265.638);
+}
+
+.nav-item-container.active-parent .nav-icon-wrapper svg {
+  color: oklch(42.4% 0.199 265.638);
+}
+
+/* Para el label cuando el padre está activo (por hijo activo) */
+.nav-item-container.active-parent .nav-label {
+  color: oklch(42.4% 0.199 265.638);
+  font-weight: 600;
+}
+
+/* Para el botón toggle cuando el padre está activo */
+.nav-item-container.active-parent .submenu-toggle-btn {
+  color: oklch(42.4% 0.199 265.638);
+}
+
+.nav-item-container.active-parent .submenu-toggle-btn:hover {
+  background-color: #e5e7eb;
+}
+
+/* Para el botón toggle cuando está activo directamente */
+.submenu-toggle-btn.active {
+  color: oklch(42.4% 0.199 265.638);
+}
+
+/* Asegurar que el contenedor se vea activo cuando tiene un hijo activo */
+.nav-item-container:has(.submenu-link.active) {
+  background-color: #eff2ff;
+}
+
+/* Para el nav-link cuando está activo directamente */
+.nav-link.active {
+  color: oklch(42.4% 0.199 265.638);
+  font-weight: 600;
+}
+
+/* Para el icon wrapper cuando está activo directamente */
+.nav-icon-wrapper.active {
+  color: oklch(42.4% 0.199 265.638);
+}
+
+.nav-icon-wrapper.active svg {
+  color: oklch(42.4% 0.199 265.638);
+}
+
+/* Para el label cuando está activo directamente */
+.nav-label.active {
+  color: oklch(42.4% 0.199 265.638);
+  font-weight: 600;
+}
+
+/* Estilos para los hijos activos */
+.submenu-link.active {
+  background-color: #eff2ff;
+  color: oklch(42.4% 0.199 265.638);
+  font-weight: 500;
+}
+
+.submenu-indicator.active {
+  background-color: oklch(42.4% 0.199 265.638);
+}
+
+.submenu-link.active .nav-label {
+  color: oklch(42.4% 0.199 265.638);
+  font-weight: 500;
+}
+
+/* Asegurar que los SVG dentro de elementos activos tengan el color correcto */
+.nav-link.active svg,
+.nav-icon-wrapper.active svg,
+.submenu-link.active svg {
+  color: oklch(42.4% 0.199 265.638);
+}
+
+/* Estilos para hover en elementos activos */
+.nav-item-container.active-parent:hover {
+  background-color: #e2e8f0;
+}
+
+.submenu-link.active:hover {
+  background-color: #dbeafe;
+}

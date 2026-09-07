@@ -1,0 +1,314 @@
+@if(visible()) {
+  <div class="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 z-40" (click)="cerrarModal()">
+  </div>
+}
+
+<!-- PANEL LATERAL -->
+<div
+  class="fixed right-0 top-0 bottom-0 w-full md:w-2/3 lg:w-[550px] h-auto z-50 transform transition-transform duration-300 ease-out flex flex-col bg-white rounded-2xl m-2 overflow-hidden shadow-xl"
+  [class.translate-x-full]="!visible()" 
+  [class.translate-x-0]="visible()"
+  (click)="$event.stopPropagation()">
+
+  <!-- Estados de contenido -->
+  @if(mostrarEsqueleto()){
+    <!-- Skeleton Header -->
+    <div class="h-auto w-full flex flex-row justify-between items-center animate-pulse p-4 border-b border-zinc-100">
+      <div class="flex flex-col gap-2">
+        <div class="h-5 w-28 bg-gray-200 rounded"></div>
+        <div class="h-5 w-40 bg-gray-200 rounded"></div>
+      </div>
+      <div class="size-6 bg-gray-200 rounded"></div>
+    </div>
+
+    <!-- Skeleton Main -->
+    <div class="h-full w-full overflow-y-auto flex flex-col gap-5 mb-4 animate-pulse">
+      <!-- Datos Skeleton -->
+      <section class="flex flex-col gap-3 border-b border-zinc-100 pb-4">
+        <div class="h-5 w-32 bg-gray-200 rounded ml-4"></div>
+
+        <div class="grid grid-cols-2 items-start px-4">
+          <div class="h-5 w-28 bg-gray-200 rounded"></div>
+          <div class="h-5 w-40 bg-gray-200 rounded"></div>
+        </div>
+
+        <div class="grid grid-cols-2 items-start px-4">
+          <div class="h-5 w-16 bg-gray-200 rounded"></div>
+          <div class="h-5 w-32 bg-gray-200 rounded"></div>
+        </div>
+
+        <div class="grid grid-cols-2 items-start px-4">
+          <div class="h-5 w-24 bg-gray-200 rounded"></div>
+          <div class="h-5 w-28 bg-gray-200 rounded"></div>
+        </div>
+      </section>
+
+      <!-- Rol Skeleton -->
+      <section class="flex flex-col gap-3 border-b border-zinc-100 pb-4">
+        <div class="h-5 w-20 bg-gray-200 rounded ml-4"></div>
+        <div class="grid grid-cols-2 items-start px-4">
+          <div class="h-5 w-16 bg-gray-200 rounded"></div>
+          <div class="h-7 w-24 bg-gray-200 rounded-full"></div>
+        </div>
+      </section>
+
+      <!-- Agente Skeleton -->
+      <section class="flex flex-col gap-3 border-b border-zinc-100 pb-4">
+        <div class="h-5 w-28 bg-gray-200 rounded ml-4"></div>
+        <div class="grid grid-cols-2 items-start px-4">
+          <div class="h-5 w-24 bg-gray-200 rounded"></div>
+          <div class="h-5 w-32 bg-gray-200 rounded"></div>
+        </div>
+        <div class="grid grid-cols-2 items-start px-4">
+          <div class="h-5 w-20 bg-gray-200 rounded"></div>
+          <div class="h-5 w-28 bg-gray-200 rounded"></div>
+        </div>
+      </section>
+    </div>   
+  }
+
+  @if(errorDeConexion()){
+    <div class="w-full h-full flex flex-col gap-6 justify-center items-center text-center p-8">
+      <div class="flex items-center justify-center bg-red-50 rounded-full size-16">
+        <app-ui-icono name="exclamation-triangle" size="size-8" color="text-red-600"></app-ui-icono>
+      </div>
+      <div class="flex flex-col gap-2">
+        <span class="text-xl font-semibold text-gray-900">Error al cargar los datos</span>
+        <span class="text-base font-normal text-gray-500 max-w-sm">
+          No se pudieron cargar los detalles del usuario. Por favor, intenta de nuevo.
+        </span>
+      </div>
+      <app-ui-boton variante="cerrar" texto="Reintentar"></app-ui-boton>
+    </div>
+  }
+
+  @if(monstrarDatos()){
+    <!-- Header -->
+    <app-header-modal 
+      [titulo]="usuario?.nombreCompleto || (usuario?.nombre + ' ' + usuario?.apellido)" 
+      descripcion="Detalles del usuario"
+      (cerrarModal)="cerrarModal()">
+    </app-header-modal>
+
+    <!-- Main Content -->
+    <div class="h-full w-full overflow-y-auto flex flex-col gap-5 my-4">
+      
+      <!-- Información General del Usuario -->
+      <section class="flex flex-col gap-3 border-b border-zinc-100 pb-4">
+        <span class="text-sm font-medium tracking-wide text-slate-800 ml-4">Información general</span>
+
+        <!-- Email -->
+        <div class="grid grid-cols-2 items-start px-4">
+          <p class="col-span-1 text-base text-slate-500 font-medium tracking-wider">
+            Correo electrónico
+          </p>
+          <p class="col-span-1 text-base break-words text-slate-800 font-medium tracking-wider">
+            {{ usuario?.email }}
+          </p>
+        </div>
+
+        <!-- Teléfono -->
+        <div class="grid grid-cols-2 items-start px-4">
+          <p class="col-span-1 text-base text-slate-500 font-medium tracking-wider">
+            Teléfono
+          </p>
+          <p class="col-span-1 text-base break-words text-slate-800 font-medium tracking-wider">
+            {{ usuario?.telefono || 'No registrado' }}
+          </p>
+        </div>
+
+        <!-- Nombre completo -->
+        <div class="grid grid-cols-2 items-start px-4">
+          <p class="col-span-1 text-base text-slate-500 font-medium tracking-wider">
+            Nombre completo
+          </p>
+          <p class="col-span-1 text-base break-words text-slate-800 font-medium tracking-wider">
+            {{ usuario?.nombre }} {{ usuario?.apellido }}
+          </p>
+        </div>
+      </section>
+
+      <!-- Rol y Estado -->
+      <section class="flex flex-col gap-3 border-b border-zinc-100 pb-4">
+        <span class="text-sm font-medium tracking-wide text-slate-800 ml-4">Rol y estado</span>
+
+        <!-- Rol -->
+        <div class="grid grid-cols-2 items-start px-4">
+          <p class="col-span-1 text-base text-slate-500 font-medium tracking-wider">
+            Rol
+          </p>
+          <div class="col-span-1">
+            @if(usuario?.rol === 'admin' || usuario?.rol === 'Administración' || usuario?.rol === 1){
+              <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium  border border-purple-200 bg-purple-100 text-purple-700">
+                Administración
+              </span>
+            } @else if(usuario?.rol === 'user' || usuario?.rol === 'Soporte' || usuario?.rol === 2){
+              <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs border border-blue-200 font-medium bg-blue-100 text-blue-700">
+                Soporte
+              </span>
+            } @else if(usuario?.rol === 'user' || usuario?.rol === 'Recepción' || usuario?.rol === 3){
+              <span class="inline-flex items-center px-2.5 py-1 rounded-md border border-yellow-200 text-xs font-medium bg-yellow-100 text-yellow-700">
+                Recepción 
+              </span>
+            } @else {
+              <span class="inline-flex items-center px-2.5 py-1 border border-zinc-200 rounded-md text-xs font-medium bg-zinc-100 text-zinc-700">
+                {{ usuario?.rol || 'Sin rol' }}
+              </span>
+            }
+          </div>
+        </div>
+
+        <!-- ID Usuario -->
+        <div class="grid grid-cols-2 items-start px-4">
+          <p class="col-span-1 text-base text-slate-500 font-medium tracking-wider">
+            ID Usuario
+          </p>
+          <p class="col-span-1 text-base text-slate-800 font-medium tracking-wider">
+            {{ usuario?.id }}
+          </p>
+        </div>
+      </section>
+
+      <!-- Información del Agente Legacy -->
+      @if(agenteLegacy){
+        <section class="flex flex-col gap-3 border-b border-zinc-100 pb-4">
+          <div class="flex items-center justify-between ml-4 mr-4">
+            <span class="text-sm font-medium tracking-wide text-slate-800">Información del agente legacy</span>
+            @if(agenteLegacy.estaEnlazado){
+              <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-green-100 text-green-700">
+                Enlazado
+              </span>
+            } @else {
+              <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-yellow-100 text-yellow-700">
+                No enlazado
+              </span>
+            }
+          </div>
+
+          <!-- Código de agente -->
+          <div class="grid grid-cols-2 items-start px-4">
+            <p class="col-span-1 text-base text-slate-500 font-medium tracking-wider">
+              Código de agente
+            </p>
+            <p class="col-span-1 text-base break-words text-slate-800 font-medium tracking-wider">
+              {{ agenteLegacy.codigo }}
+            </p>
+          </div>
+
+          <!-- Nombre del agente -->
+          <div class="grid grid-cols-2 items-start px-4">
+            <p class="col-span-1 text-base text-slate-500 font-medium tracking-wider">
+              Nombre del agente
+            </p>
+            <p class="col-span-1 text-base break-words text-slate-800 font-medium tracking-wider">
+              {{ agenteLegacy.nombre }}
+            </p>
+          </div>
+
+          <!-- Tipo de agente -->
+          <div class="grid grid-cols-2 items-start px-4">
+            <p class="col-span-1 text-base text-slate-500 font-medium tracking-wider">
+              Tipo de agente
+            </p>
+            <div class="col-span-1">
+              @if(agenteLegacy.tipo === 1){
+                <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-700">
+                  Vendedor
+                </span>
+              } @else if(agenteLegacy.tipo === 2){
+                <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-green-100 text-green-700">
+                  Cobrador
+                </span>
+              } @else if(agenteLegacy.tipo === 3){
+                <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-purple-100 text-purple-700">
+                  Ambos (Vendedor y Cobrador)
+                </span>
+              } @else {
+                <span class="text-base text-slate-800 font-medium tracking-wider">
+                  {{ agenteLegacy.tipoDescripcion }}
+                </span>
+              }
+            </div>
+          </div>
+
+          <!-- Comisiones -->
+          <div class="grid grid-cols-2 items-start px-4">
+            <p class="col-span-1 text-base text-slate-500 font-medium tracking-wider">
+              Comisión venta
+            </p>
+            <p class="col-span-1 text-base text-slate-800 font-medium tracking-wider">
+              {{ agenteLegacy.comisionVenta }}%
+            </p>
+          </div>
+
+          <div class="grid grid-cols-2 items-start px-4">
+            <p class="col-span-1 text-base text-slate-500 font-medium tracking-wider">
+              Comisión cobro
+            </p>
+            <p class="col-span-1 text-base text-slate-800 font-medium tracking-wider">
+              {{ agenteLegacy.comisionCobro }}%
+            </p>
+          </div>
+
+          <!-- Fecha de alta -->
+          <div class="grid grid-cols-2 items-start px-4">
+            <p class="col-span-1 text-base text-slate-500 font-medium tracking-wider">
+              Fecha de alta
+            </p>
+            <p class="col-span-1 text-base text-slate-800 font-medium tracking-wider">
+              {{ agenteLegacy.fechaAlta | date:'dd/MM/yyyy' }}
+            </p>
+          </div>
+
+          <!-- Información de enlace (si está enlazado) -->
+          @if(agenteLegacy.estaEnlazado && agenteLegacy.usuarioEnlazadoId === usuario?.id){
+            <div class="mt-2 p-3 bg-blue-50 rounded-lg mx-4">
+              <p class="text-sm font-medium text-blue-800 mb-1">Información de enlace</p>
+              <div class="grid grid-cols-2 gap-2 text-sm">
+                <span class="text-blue-600">Fecha de enlace:</span>
+                <span class="text-blue-900">{{ agenteLegacy.fechaEnlace | date:'dd/MM/yyyy HH:mm' }}</span>
+                
+                @if(agenteLegacy.usuarioEnlazadoEmail){
+                  <span class="text-blue-600">Email enlazado:</span>
+                  <span class="text-blue-900">{{ agenteLegacy.usuarioEnlazadoEmail }}</span>
+                }
+              </div>
+            </div>
+          }
+        </section>
+      } @else if(usuario?.idAgente){
+        <!-- Si hay idAgente pero no se cargó la información completa -->
+        <section class="flex flex-col gap-3 border-b border-zinc-100 pb-4">
+          <span class="text-sm font-medium tracking-wide text-slate-800 ml-4">Agente legacy</span>
+          <div class="px-4">
+            <div class="bg-yellow-50 rounded-lg p-3">
+              <p class="text-sm text-yellow-800">
+                ID de agente asignado: <strong>{{ usuario.idAgente }}</strong>
+              </p>
+              <p class="text-xs text-yellow-600 mt-1">
+                No se pudo cargar la información completa del agente
+              </p>
+            </div>
+          </div>
+        </section>
+      }
+
+      <!-- Permisos -->
+      @if(usuario?.permissions && usuario.permissions.length > 0){
+        <section class="flex flex-col gap-3 border-b border-zinc-100 pb-4">
+          <span class="text-sm font-medium tracking-wide text-slate-800 ml-4">Permisos</span>
+          
+          <div class="px-4">
+            <div class="flex flex-wrap gap-2">
+              @for(permiso of usuario.permissions; track permiso){
+                <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-green-100 text-green-700">
+                  {{ permiso }}
+                </span>
+              }
+            </div>
+          </div>
+        </section>
+      }
+    </div>
+  }
+</div>

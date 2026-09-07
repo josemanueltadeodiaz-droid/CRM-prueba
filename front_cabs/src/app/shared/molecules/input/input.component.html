@@ -1,0 +1,727 @@
+<div class="flex flex-col gap-2">
+  <!-- Label superior solo para inputs normales -->
+  @if (variant !== 'checkbox' && variant !== 'filter-checkbox' && variant !== 'toggle' && variant !== 'radio' && variant
+  !== 'radio-select') {
+  <div class="label-row flex justify-between items-center">
+    @if (labelObligatorio) {
+    <label class="text-sm font-medium text-zinc-700">
+      {{ label }} <span class="text-red-500">*</span>
+    </label>
+    } @else {
+    <label class="text-sm font-medium text-zinc-700">{{ label }}</label>
+    }
+
+    @if (variant === 'textarea' && showCharCount && maxLength) {
+    <span class="text-xs text-gray-500">{{ charCount }}</span>
+    }
+  </div>
+  }
+
+  <!-- MODO INFO (siempre que variant sea 'info') -->
+  @if (isInfoMode) {
+  <div [class]="obtenerClasesVisualizacion()" class="flex-1 min-h-[44px]">
+    <div class="flex items-center gap-2 h-full">
+      <!-- Icono para todos excepto checkbox -->
+      <app-ui-icono [name]="defaultIcon" size="size-4" color="text-zinc-500" class="flex-shrink-0">
+      </app-ui-icono>
+
+      <!-- Valor mostrado -->
+      <span class="truncate">{{ getDisplayValue() }}</span>
+    </div>
+  </div>
+  }
+
+  @else if (isLockedMode) {
+  <div
+    class="locked-field flex items-center gap-2.5 px-3.5 py-2.5 bg-white border border-gray-200 rounded-md min-h-[42px]">
+    <span class="lock-icon flex items-center justify-center w-4.5 h-4.5 text-gray-400 flex-shrink-0">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+        class="w-full h-full">
+        <path stroke-linecap="round" stroke-linejoin="round"
+          d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+      </svg>
+    </span>
+    <span class="text-sm text-gray-500 font-medium flex-1">{{ value || 'No especificado' }}</span>
+  </div>
+  @if (helpText) {
+  <span class="text-xs text-gray-500 italic">{{ helpText }}</span>
+  }
+  }
+
+  <!-- MODO VISUALIZACIÓN (solo cuando editable=true y no está en modo edición y NO es info) -->
+  @else if (editable && !editMode && !isDisabled && !isInfoMode && !isLockedMode) {
+  <div class="flex items-center gap-2">
+    <!-- Campo de solo lectura -->
+    <div [class]="obtenerClasesVisualizacion()" class="flex-1 min-h-[44px]">
+      <div class="flex items-center gap-2 h-full">
+        <!-- Icono para todos excepto checkbox -->
+        @if (variant !== 'checkbox' && variant !== 'select' && variant !== 'toggle' && variant !== 'radio' && variant
+        !== 'radio-select') {
+        
+        <app-ui-icono [name]="defaultIcon" size="size-4" color="text-zinc-500" class="flex-shrink-0">
+        </app-ui-icono>
+        }
+
+        <!-- Valor mostrado -->
+        <span class="truncate">{{ getDisplayValue() }}</span>
+
+        <!-- Botón para mostrar/ocultar contraseña en modo visualización -->
+        @if (variant === 'password' && (value || tempValue)) {
+        <button type="button"
+                (click)="togglePasswordVisibility()"
+                class="ml-2 p-1 text-gray-500 hover:text-gray-700 rounded"
+                title="{{ isPasswordVisible ? 'Ocultar contraseña' : 'Mostrar contraseña' }}">
+          <app-ui-icono [name]="isPasswordVisible ? 'eye-slash' : 'eye'" size="size-3"></app-ui-icono>
+        </button>
+        }
+      </div>
+    </div>
+
+    <!-- Botón para editar (SIEMPRE VISIBLE) -->
+    <button type="button" (click)="activarEdicion()"
+      class="edit-button p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-md transition-colors"
+      title="Editar">
+      <app-ui-icono name="pencil-square" size="size-4">
+      </app-ui-icono>
+    </button>
+  </div>
+  }
+
+  <!-- MODO EDICIÓN o INPUT NORMAL (cuando editable=false o está en modo edición y NO es info) -->
+  @else if ((!editable && !isDisabled && !isInfoMode && !isLockedMode) || (editMode && !isInfoMode && !isLockedMode) ||
+  (isDisabled && !isInfoMode && !isLockedMode)) {
+  <!-- Switch de variantes -->
+  @switch (variant) {
+
+  <!-- CHECKBOX SECTION -->
+  @case ('checkbox') {
+  <!-- Bloque checkbox normal -->
+  <div class="flex items-center gap-2">
+    <div class="flex items-center gap-2 relative">
+      <input type="checkbox" [ngModel]="checked" [disabled]="isDisabled" (ngModelChange)="onCheckboxModelChange($event)"
+        class="appearance-none h-4 w-4 border border-[var(--color-borde)] rounded-xs bg-white checked:bg-blue-500 checked:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed" />
+      @if (checked) {
+      <app-ui-icono name="check" size="size-4" color="text-white"
+        class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+      </app-ui-icono>
+      }
+    </div>
+
+    <label class="text-sm font-normal text-zinc-700">
+      {{ label }}
+      @if (labelObligatorio) {
+      <span class="text-red-500">*</span>
+      }
+    </label>
+
+    <!-- Botones de acción para checkbox solo en modo edición -->
+    @if (editMode && !isDisabled) {
+    <div class="flex gap-1 ml-2">
+      <button type="button" (click)="guardarCambios()"
+        class="p-1 text-green-800 hover:text-green-900 hover:bg-green-50 rounded transition-colors" title="Guardar">
+        <app-ui-icono name="check" size="size-4" color="text-green-800"></app-ui-icono>
+      </button>
+      <button type="button" (click)="cancelarEdicion()"
+        class="p-1 text-red-800 hover:text-red-900 hover:bg-red-50 rounded transition-colors" title="Cancelar">
+        <app-ui-icono name="x-mark" size="size-4" color="text-red-800"></app-ui-icono>
+      </button>
+    </div>
+    }
+  </div>
+  }
+
+  @case ('filter-checkbox') {
+  <!-- Bloque filter-checkbox -->
+  <label
+    class="filter-checkbox-container flex items-start gap-3 p-2 rounded hover:bg-gray-50 cursor-pointer transition-colors"
+    [class.disabled]="disabled">
+
+    <input type="checkbox" [ngModel]="checked" [disabled]="disabled" (ngModelChange)="onCheckboxModelChange($event)"
+      class="checkbox-input mt-1 h-4 w-4 text-blue-600 rounded border-neutral-100 focus:ring-blue-500 focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed" />
+
+    <span class="checkbox-content flex-1">
+      <span class="checkbox-label block text-sm text-gray-900 font-medium">
+        {{ label }}
+      </span>
+      @if (checkboxDescription) {
+      <span class="checkbox-description block text-xs text-gray-500 mt-1">
+        {{ checkboxDescription }}
+      </span>
+      }
+    </span>
+  </label>
+  }
+
+  @case ('select') {
+  <!-- Bloque select -->
+  <div class="relative w-full">
+    <div class="flex items-center gap-2">
+      <div class="flex-1 relative">
+        <button (click)="toggleDropdown()" [disabled]="isDisabled"
+          [class]="obtenerClasesInput() + ' flex flex-row justify-between items-center pl-3 pr-3 disabled:opacity-50 disabled:cursor-not-allowed'">
+
+          <!-- Contenedor icono + texto -->
+          <div class="flex flex-row gap-2 items-center">
+            @if(visualizarIcono){
+              <app-ui-icono [name]="defaultIcon" size="h-4 w-4" [color]="getColorIcono()">
+              </app-ui-icono>
+            }
+
+            <span class="truncate">{{ getDisplayValue() || placeholderText }}</span>
+          </div>
+          <!-- Contenedor flecha -->
+          <div>
+            @if (dropdownAbierto) {
+            <app-ui-icono name="chevron-up" size="h-4 w-4" class="transition-transform duration-200">
+            </app-ui-icono>
+            } @else {
+            <app-ui-icono name="chevron-down" size="h-4 w-4" class="transition-transform duration-200">
+            </app-ui-icono>
+            }
+          </div>
+        </button>
+
+        <!-- Dropdown -->
+        @if (dropdownAbierto) {
+        <ul
+          class="absolute top-full left-0 z-50 w-full bg-white border border-neutral-100 rounded-md shadow-xs mt-1 max-h-60 overflow-y-auto">
+          @for (opt of options; track $index) {
+          <li (click)="seleccionar(opt.value.toString())" [class.opacity-50]="opt.disabled"
+            [class.cursor-not-allowed]="opt.disabled"
+            class="px-4 py-2 hover:bg-gray-50 cursor-pointer text-left text-xs font-medium text-gray-700 truncate">
+            {{ opt.label }}
+          </li>
+          }
+        </ul>
+        }
+      </div>
+
+      <!-- Botones de acción para select solo en modo edición -->
+      @if (editMode && !isDisabled) {
+      <div class="flex gap-1">
+        <button type="button" (click)="guardarCambios()"
+          class="p-1 text-green-800 hover:text-green-900 hover:bg-green-50 rounded transition-colors" title="Guardar">
+          <app-ui-icono name="check" size="size-4" color="text-green-800"></app-ui-icono>
+        </button>
+        <button type="button" (click)="cancelarEdicion()"
+          class="p-1 text-red-800 hover:text-red-900 hover:bg-red-50 rounded transition-colors" title="Cancelar">
+          <app-ui-icono name="x-mark" size="size-4" color="text-red-800"></app-ui-icono>
+        </button>
+      </div>
+      }
+    </div>
+  </div>
+  }
+
+  @case ('filter-select') {
+  <div class="filter-select-wrapper relative">
+    <select [value]="value || ''" [disabled]="disabled" (change)="onSelectChange($event)"
+      class="filter-select w-full px-4 py-2 pr-10 border border-neutral-100 rounded-lg appearance-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white transition-all disabled:bg-gray-100 disabled:cursor-not-allowed">
+      <option value="">{{ placeholderText }}</option>
+      @for (option of options; track $index) {
+      <option [value]="option.value" [disabled]="option.disabled">
+        {{ option.label }}
+      </option>
+      }
+    </select>
+
+    <div class="select-icon absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+      <app-ui-icono name="chevron-down" size="h-5 w-5" [color]="disabled ? 'text-gray-400' : 'text-gray-500'">
+      </app-ui-icono>
+    </div>
+  </div>
+  }
+
+  @case ('search') {
+  <div class="relative w-full">
+    <!-- Input de búsqueda -->
+    <input type="search" [class]="obtenerClasesInput() + (editMode && !isDisabled ? ' pr-20' : '')"
+      [placeholder]="placeholder || 'Buscar...'" [value]="value" [disabled]="isDisabled" (input)="onTextChange($event)"
+      (blur)="onBlur()" (focus)="onFocus()" (keydown.enter)="desactivarEdicion()"
+      (keydown.escape)="cancelarEdicion()" />
+
+    <!-- Ícono de lupa a la izquierda -->
+    <app-ui-icono name="magnifying-glass" size="size-4" [color]="getColorIcono()"
+      class="absolute left-3 top-1/2 -translate-y-1/2">
+    </app-ui-icono>
+
+    <!-- Botones de acción para search solo en modo edición -->
+    @if (editMode && !isDisabled) {
+    <div class="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1">
+      <button type="button" (click)="guardarCambios()"
+        class="p-1 text-green-800 hover:text-green-900 hover:bg-green-50 rounded transition-colors" title="Guardar">
+        <app-ui-icono name="check" size="size-4" color="text-green-800"></app-ui-icono>
+      </button>
+      <button type="button" (click)="cancelarEdicion()"
+        class="p-1 text-red-800 hover:text-red-900 hover:bg-red-50 rounded transition-colors" title="Cancelar">
+        <app-ui-icono name="x-mark" size="size-4" color="text-red-800"></app-ui-icono>
+      </button>
+    </div>
+    }
+  </div>
+  }
+
+  @case ('filter-input') {
+  <div class="filter-input-wrapper relative">
+    @if (hasIcon) {
+    <div class="input-icon absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none z-10">
+      <app-ui-icono [name]="defaultIcon" size="h-5 w-5" color="text-gray-400">
+      </app-ui-icono>
+    </div>
+    }
+
+    <input [type]="'text'" [placeholder]="placeholder" [value]="value" [disabled]="disabled"
+      (input)="onTextChange($event)" [class.has-icon]="hasIcon"
+      class="filter-input w-full px-4 py-2 border border-neutral-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all disabled:bg-gray-100 disabled:cursor-not-allowed" />
+  </div>
+  }
+
+  @case ('code') {
+  <!-- Bloque code input -->
+  <div class="code-input-container">
+    <div class="flex gap-2 justify-center">
+      @for (digit of codeDigits; track $index) {
+      <input type="text" maxlength="1" [value]="digit" [disabled]="isDisabled"
+        class="w-12 h-12 text-center text-xl border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+        (input)="onDigitChange($index, $event)" (focus)="onFocus()" (blur)="onBlur()"
+        (keydown.enter)="desactivarEdicion()" (keydown.escape)="cancelarEdicion()" />
+      }
+    </div>
+    <!-- Botones de acción para code solo en modo edición -->
+    @if (editMode && !isDisabled) {
+    <div class="flex gap-2 justify-center mt-2">
+      <button type="button" (click)="guardarCambios()"
+        class="px-3 py-1 text-sm text-green-800 bg-green-50 hover:bg-green-100 rounded transition-colors border border-green-800"
+        title="Guardar">
+        Guardar
+      </button>
+      <button type="button" (click)="cancelarEdicion()"
+        class="px-3 py-1 text-sm text-red-800 bg-red-50 hover:bg-red-100 rounded transition-colors border border-red-800"
+        title="Cancelar">
+        Cancelar
+      </button>
+    </div>
+    }
+  </div>
+  }
+
+  @case ('textarea') {
+  <div class="form-textarea-wrapper">
+    <textarea
+      class="form-textarea w-full px-3.5 py-2.5 text-sm border border-neutral-100 rounded-md bg-gray-50 text-gray-800 transition-all outline-none resize-y leading-relaxed focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+      [class.error]="textoError" [class.disabled]="disabled" [placeholder]="placeholder" [disabled]="disabled"
+      [readonly]="readonly" [rows]="rows" [attr.maxlength]="maxLength" [value]="value"
+      (input)="onTextareaChange($any($event.target).value)" (blur)="onBlur()" (focus)="onFocus()"></textarea>
+  </div>
+  }
+
+  @case ('toggle') {
+  <div class="form-toggle-wrapper flex flex-col gap-1.5 w-full">
+    <div class="toggle-container flex flex-col items-center gap-2">
+      @if (label) {
+      <label class="text-sm font-medium text-gray-700 text-center">
+        {{ label }}
+      </label>
+      }
+
+      <button type="button" role="switch" [attr.aria-checked]="value"
+        class="toggle-button relative border-none rounded-full cursor-pointer transition-all outline-none flex-shrink-0"
+        [class]="toggleSizeClass" [class.active]="value" [class.disabled]="disabled" [disabled]="disabled"
+        (click)="onToggle()">
+        <span
+          class="toggle-slider absolute top-0.5 left-0.5 bg-white rounded-full transition-transform shadow-sm"></span>
+      </button>
+    </div>
+
+    @if (helpText) {
+    <span class="text-xs text-gray-500 text-center">
+      {{ helpText }}
+    </span>
+    }
+  </div>
+  }
+
+  @case ('date') {
+  <div class="relative w-full">
+    <app-ui-icono name="calendar" size="size-4" [color]="getColorIcono()"
+      class="absolute left-3 top-1/2 -translate-y-1/2">
+    </app-ui-icono>
+    <input type="date" [class]="obtenerClasesInput()" [placeholder]="placeholder" [value]="value"
+      [disabled]="isDisabled" (input)="onTextChange($event)" (blur)="onBlur()" (focus)="onFocus()" />
+  </div>
+  }
+
+  @case ('month') {
+  <div class="relative w-full">
+    <app-ui-icono name="calendar" size="size-4" [color]="getColorIcono()"
+      class="absolute left-3 top-1/2 -translate-y-1/2">
+    </app-ui-icono>
+    <input type="month" [class]="obtenerClasesInput()" [placeholder]="placeholder" [value]="value"
+      [disabled]="isDisabled" (input)="onTextChange($event)" (blur)="onBlur()" (focus)="onFocus()" />
+  </div>
+  }
+
+  @case ('year') {
+  <div class="relative w-full">
+    <app-ui-icono name="calendar" size="size-4" [color]="getColorIcono()"
+      class="absolute left-3 top-1/2 -translate-y-1/2">
+    </app-ui-icono>
+    <input type="number" min="1900" max="2100" [class]="obtenerClasesInput()" [placeholder]="placeholder || 'Año'"
+      [value]="value" [disabled]="isDisabled" (input)="onTextChange($event)" (blur)="onBlur()" (focus)="onFocus()" />
+  </div>
+  }
+
+  <!-- Password - Caso especial -->
+  @case ('password') {
+  <div class="relative w-full">
+    <!-- Icono izquierdo (candado) -->
+    <app-ui-icono name="lock-closed" size="size-4" [color]="getColorIcono()"
+      class="absolute left-3 top-1/2 -translate-y-1/2">
+    </app-ui-icono>
+
+    <!-- Input de contraseña -->
+    <input
+      [type]="isPasswordVisible ? 'text' : 'password'"
+      [class]="obtenerClasesInput() + (editMode && !isDisabled ? ' pr-32' : ' pr-10')"
+      [placeholder]="placeholder"
+      [value]="editMode ? tempValue : value"
+      [disabled]="isDisabled"
+      [readonly]="readonly"
+      [attr.maxlength]="maxLength"
+      (input)="onTextChange($event)"
+      (blur)="onBlur()"
+      (focus)="onFocus()"
+      (keydown.enter)="desactivarEdicion()"
+      (keydown.escape)="cancelarEdicion()"
+      class="w-full" />
+
+    <!-- Botón para mostrar/ocultar contraseña -->
+    @if (!isDisabled) {
+    <button type="button"
+            (click)="togglePasswordVisibility()"
+            class="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-500 hover:text-gray-700"
+            title="{{ isPasswordVisible ? 'Ocultar contraseña' : 'Mostrar contraseña' }}">
+      <app-ui-icono [name]="isPasswordVisible ? 'eye-slash' : 'eye'" size="size-4"></app-ui-icono>
+    </button>
+    }
+
+    <!-- Botones de acción para password solo en modo edición -->
+    @if (editMode && !isDisabled) {
+    <div class="absolute right-12 top-1/2 -translate-y-1/2 flex gap-1">
+      <button type="button" (click)="guardarCambios()"
+        class="p-1 text-green-800 hover:text-green-900 hover:bg-green-50 rounded transition-colors" title="Guardar">
+        <app-ui-icono name="check" size="size-4" color="text-green-800"></app-ui-icono>
+      </button>
+      <button type="button" (click)="cancelarEdicion()"
+        class="p-1 text-red-800 hover:text-red-900 hover:bg-red-50 rounded transition-colors" title="Cancelar">
+        <app-ui-icono name="x-mark" size="size-4" color="text-red-800"></app-ui-icono>
+      </button>
+    </div>
+    }
+  </div>
+  }
+
+  <!-- Radio -->
+  @case ('radio') {
+  <!-- Radio buttons normales -->
+  <div class="">
+    @if (label && !editMode) {
+    <label class="text-sm font-medium text-zinc-700 mb-2 block">
+      {{ label }}
+      @if (labelObligatorio) {
+      <span class="text-red-500">*</span>
+      }
+    </label>
+    }
+
+    <!-- Contenedor principal para los radios -->
+    <div class="w-full radio-group {{ getRadioLayoutClass() }}">
+      <!-- Si hay 2 opciones y no especifica layout, usar grid de 2 columnas -->
+      @if (radioOptions.length === 2) {
+      <!-- CONTENEDOR CON DISEÑO ESPECIAL PARA 2 OPCIONES -->
+      <div class="flex justify-between gap-4 w-full">
+        @for (option of radioOptions; track option.value) {
+        <label class="radio-card-container relative w-full min-h-[120px] border-2 rounded-lg flex flex-col p-4 gap-3 cursor-pointer transition-all duration-200
+                            {{ (option.disabled || disabled) ? 'opacity-50 cursor-not-allowed' : '' }}
+                            {{ (editMode ? tempValue : value)?.toString() === option.value.toString()
+                                ? 'border-blue-500 bg-blue-50 shadow-sm'
+                                : 'border-neutral-100 hover:border-blue-400 hover:bg-blue-50/30' }}">
+          <input type="radio" [name]="label" [value]="option.value"
+            [checked]="(editMode ? tempValue : value)?.toString() === option.value.toString()"
+            [disabled]="option.disabled || disabled" (change)="onRadioChange(option.value)" class="sr-only" />
+
+          <!-- CONTENIDO DE LA TARJETA -->
+          <div class="flex flex-col h-full">
+            <!-- Icono o imagen opcional -->
+            @if (option.icon) {
+            <div class="mb-3">
+              <app-ui-icono size="size-6" class="text-gray-700"></app-ui-icono>
+            </div>
+            }
+
+            <!-- Texto principal -->
+            <div class="flex-1">
+              <h3
+                class="text-base font-semibold text-gray-900 {{ (option.disabled || disabled) ? 'text-gray-400' : '' }}">
+                {{ option.label }}
+              </h3>
+
+              <!-- Descripción (si existe) -->
+              @if (option.description) {
+              <p
+                class="radio-description text-sm text-gray-600 mt-2 {{ (option.disabled || disabled) ? 'text-gray-300' : '' }}">
+                {{ option.description }}
+              </p>
+              }
+            </div>
+
+            <!-- Radio button al final de la tarjeta -->
+            <div class="flex items-center gap-2 mt-4 pt-3 border-t border-gray-100">
+              <div class="flex-shrink-0 flex items-center justify-center">
+                <div
+                  class="w-5 h-5 border-2 border-neutral-100 rounded-full flex items-center justify-center transition-all duration-200
+                                      {{ (option.disabled || disabled) ? 'border-gray-200 opacity-50' : '' }}
+                                      {{ (editMode ? tempValue : value)?.toString() === option.value.toString() ? 'border-blue-500' : '' }}">
+                  <div class="w-2.5 h-2.5 rounded-full bg-blue-500 transition-all duration-200
+                                        {{ (editMode ? tempValue : value)?.toString() === option.value.toString() ? 'scale-100' : 'scale-0' }}
+                                        {{ (option.disabled || disabled) ? 'bg-gray-400' : '' }}">
+                  </div>
+                </div>
+              </div>
+              <span class="text-sm text-gray-600">Seleccionar</span>
+            </div>
+          </div>
+
+          <!-- Indicador visual de selección -->
+          <div class="absolute inset-0 border-2 border-transparent rounded-lg pointer-events-none
+                                {{ (editMode ? tempValue : value)?.toString() === option.value.toString()
+                                    ? 'border-blue-300' : '' }}">
+          </div>
+        </label>
+        }
+      </div>
+      <!-- FIN CONTENEDOR PARA 2 OPCIONES -->
+      } @else {
+      <!-- Layout normal para más de 2 opciones o layout específico -->
+      @if (label && !editMode) {
+      <label class="text-sm font-medium text-zinc-700 mb-2 block">
+        {{ label }}
+        @if (labelObligatorio) {
+        <span class="text-red-500">*</span>
+        }
+      </label>
+      }
+
+      @for (option of radioOptions; track option.value) {
+      <label class="radio-option {{ getRadioOptionClasses(option) }} flex ">
+        <input type="radio" [name]="label" [value]="option.value"
+          [checked]="(editMode ? tempValue : value)?.toString() === option.value.toString()"
+          [disabled]="option.disabled || disabled" (change)="onRadioChange(option.value)" class="sr-only" />
+
+        @if (showRadioIcons && option.icon) {
+        <app-ui-icono nombre="user" size="size-4" class="mr-2 text-gray-600"></app-ui-icono>
+        }
+
+        <!-- Radio circular usando div con Tailwind -->
+        <div class="flex items-center justify-center">
+          <div class="w-5 h-5 border-2 border-neutral-100 rounded-full flex items-center justify-center transition-all duration-200
+                              {{ (option.disabled || disabled) ? 'border-gray-200 opacity-50' : '' }}
+                              {{ (editMode ? tempValue : value)?.toString() === option.value.toString() ? 'border-blue-500' : '' }}
+                              {{ radioLayout === 'card' ? 'group-hover:border-blue-400' : 'hover:border-blue-400' }}">
+            <div class="w-2.5 h-2.5 rounded-full bg-blue-500 transition-all duration-200
+                                {{ (editMode ? tempValue : value)?.toString() === option.value.toString() ? 'scale-100' : 'scale-0' }}
+                                {{ (option.disabled || disabled) ? 'bg-gray-400' : '' }}">
+            </div>
+          </div>
+        </div>
+
+        <div class="radio-content ml-3">
+          <span
+            class="radio-label text-sm font-medium text-gray-900 {{ (option.disabled || disabled) ? 'text-gray-400' : '' }}">
+            {{ option.label }}
+          </span>
+          @if (option.description) {
+          <p
+            class="radio-description text-xs text-gray-500 mt-1 {{ (option.disabled || disabled) ? 'text-gray-300' : '' }}">
+            {{ option.description }}
+          </p>
+          }
+        </div>
+      </label>
+      }
+      }
+    </div>
+
+    <!-- Botones de acción para radio solo en modo edición -->
+    @if (editMode && !isDisabled) {
+    <div class="flex gap-2 mt-3">
+      <button type="button" (click)="guardarCambios()"
+        class="px-3 py-1 text-sm text-green-800 bg-green-50 hover:bg-green-100 rounded transition-colors border border-green-800"
+        title="Guardar">
+        Guardar
+      </button>
+      <button type="button" (click)="cancelarEdicion()"
+        class="px-3 py-1 text-sm text-red-800 bg-red-50 hover:bg-red-100 rounded transition-colors border border-red-800"
+        title="Cancelar">
+        Cancelar
+      </button>
+    </div>
+    }
+  </div>
+  }
+
+  @case ('radio-select') {
+  <!-- Radio como select (dropdown) -->
+  <div class="relative radio-select-container w-full">
+    @if (label && !editMode) {
+    <label class="text-sm font-medium text-zinc-700 mb-1 block">
+      {{ label }}
+      @if (labelObligatorio) {
+      <span class="text-red-500">*</span>
+      }
+    </label>
+    }
+
+    <!-- Display del valor seleccionado -->
+    <div class="radio-select-display {{ obtenerClasesInput() }} cursor-pointer flex items-center"
+      (click)="toggleRadioDropdown()" [class.border-blue-500]="radioDropdownAbierto" [class.opacity-50]="disabled">
+      <div class="flex items-center justify-between w-full">
+        <span class="truncate flex items-center gap-2">
+          @if (hasIcon) {
+          <app-ui-icono [name]="defaultIcon" size="size-4" [color]="getColorIcono()" class="flex-shrink-0">
+          </app-ui-icono>
+          }
+          {{ placeholderText }}
+        </span>
+        <div class="flex items-center gap-2">
+          <!-- Radio circular pequeño para mostrar el estado -->
+          @if (value) {
+          <div class="flex items-center justify-center">
+            <div class="w-3.5 h-3.5 border-2 border-blue-500 rounded-full flex items-center justify-center">
+              <div class="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
+            </div>
+          </div>
+          }
+          <app-ui-icono nombre="option" size="size-4" class="text-gray-500 flex-shrink-0"></app-ui-icono>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dropdown de opciones -->
+    @if (radioDropdownAbierto) {
+    <div class="absolute z-50 w-full mt-1 bg-white border border-red-500 rounded-lg shadow-xs max-h-60 overflow-auto">
+      @if (loading) {
+      <div class="px-4 py-3 text-sm text-gray-500">
+        {{ loadingText }}
+      </div>
+      } @else if (radioOptions.length === 0) {
+      <div class="px-4 py-3 text-sm text-gray-500">
+        {{ emptyText }}
+      </div>
+      } @else {
+      @for (option of radioOptions; track option.value) {
+      <div class="px-4 py-3 hover:bg-blue-50 cursor-pointer transition-colors duration-150 border-b border-gray-100 last:border-b-0
+                           {{ (editMode ? tempValue : value)?.toString() === option.value.toString() ? 'bg-white' : '' }}
+                           {{ option.disabled || disabled ? 'opacity-50 cursor-not-allowed' : '' }}"
+        (click)="!option.disabled && !disabled && onRadioChange(option.value)">
+        <div class="flex items-center">
+          <!-- Radio circular en dropdown -->
+          <div class="flex items-center justify-center mr-3">
+            <div
+              class="w-4.5 h-4.5 border-2 border-neutral-100 rounded-full flex items-center justify-center transition-all duration-200
+                                   {{ (option.disabled || disabled) ? 'border-gray-200' : '' }}
+                                   {{ (editMode ? tempValue : value)?.toString() === option.value.toString() ? 'border-blue-500' : '' }}">
+              <div class="w-2 h-2 rounded-full bg-blue-500 transition-all duration-200
+                                     {{ (editMode ? tempValue : value)?.toString() === option.value.toString() ? 'scale-100' : 'scale-0' }}
+                                     {{ (option.disabled || disabled) ? 'bg-gray-400' : '' }}">
+              </div>
+            </div>
+          </div>
+
+          <div class="flex-1">
+            <div class="flex items-center">
+              @if (showRadioIcons && option.icon) {
+              <app-ui-icono nombre="option" size="size-4" class="mr-2 text-gray-600"></app-ui-icono>
+              }
+              <span
+                class="text-sm font-medium text-gray-900 {{ (option.disabled || disabled) ? 'text-gray-500' : '' }}">
+                {{ option.label }}
+              </span>
+            </div>
+            @if (option.description) {
+            <p class="text-xs text-gray-500 mt-1 {{ (option.disabled || disabled) ? 'text-gray-300' : '' }}">
+              {{ option.description }}
+            </p>
+            }
+          </div>
+        </div>
+      </div>
+      }
+      }
+    </div>
+    }
+
+    <!-- Botones de acción para radio-select solo en modo edición -->
+    @if (editMode && !isDisabled) {
+    <div class="flex gap-2 mt-2">
+      <button type="button" (click)="guardarCambios()"
+        class="px-3 py-1 text-sm text-green-800 bg-green-50 hover:bg-green-100 rounded transition-colors border border-green-800"
+        title="Guardar">
+        Guardar
+      </button>
+      <button type="button" (click)="cancelarEdicion()"
+        class="px-3 py-1 text-sm text-red-800 bg-red-50 hover:bg-red-100 rounded transition-colors border border-red-800"
+        title="Cancelar">
+        Cancelar
+      </button>
+    </div>
+    }
+  </div>
+  }
+
+  @default {
+  <!-- Bloque input normal (text, email, tel, number, url, etc.) -->
+  <div class="relative">
+    <app-ui-icono [name]="defaultIcon" size="size-4" [color]="getColorIcono()"
+      class="absolute left-3 top-1/2 -translate-y-1/2">
+    </app-ui-icono>
+    <input [type]="variant" [class]="obtenerClasesInput() + (editMode && !isDisabled ? ' pr-20' : '')"
+      [placeholder]="placeholder" [value]="editMode ? tempValue : value" [disabled]="isDisabled" [readonly]="readonly"
+      [attr.maxlength]="maxLength" (input)="onTextChange($event)" (blur)="onBlur()" (focus)="onFocus()"
+      (keydown.enter)="desactivarEdicion()" (keydown.escape)="cancelarEdicion()" />
+
+    <!-- Botones de acción para inputs normales solo en modo edición -->
+    @if (editMode && !isDisabled) {
+    <div class="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1">
+      <button type="button" (click)="guardarCambios()"
+        class="p-1 text-green-800 hover:text-green-900 hover:bg-green-50 rounded transition-colors" title="Guardar">
+        <app-ui-icono name="check" size="size-4" color="text-green-800"></app-ui-icono>
+      </button>
+      <button type="button" (click)="cancelarEdicion()"
+        class="p-1 text-red-800 hover:text-red-900 hover:bg-red-50 rounded transition-colors" title="Cancelar">
+        <app-ui-icono name="x-mark" size="size-4" color="text-red-800"></app-ui-icono>
+      </button>
+    </div>
+    }
+  </div>
+  }
+  }
+  }
+
+  @if (helpText && !textoError && variant !== 'locked' && variant !== 'toggle' && variant !== 'radio') {
+  <span class="text-gray-500 text-xs">{{ helpText }}</span>
+  }
+
+  <!-- Errores -->
+  @if (textoError) {
+  <span class="text-red-500 text-xs mt-1">{{ textoError }}</span>
+  }
+
+  @if (textoErrores.length > 0) {
+  <ul class="text-red-500 text-xs mt-1">
+    @for (error of textoErrores; track $index) {
+    <li>{{ error }}</li>
+    }
+  </ul>
+  }
+</div>

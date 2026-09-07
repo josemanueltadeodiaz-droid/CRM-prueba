@@ -1,0 +1,540 @@
+@if (visible()) {
+  <div class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40" (click)="cerrarPanel()"></div>
+}
+
+<div
+  class="fixed right-0 top-0 bottom-0 w-full md:w-2/3 lg:w-[550px] z-50 transform transition-transform duration-300 ease-out flex flex-col bg-white rounded-2xl m-2 overflow-hidden shadow-2xl"
+  [class.translate-x-full]="!visible()" [class.translate-x-0]="visible()"
+  (click)="$event.stopPropagation()">
+
+  <app-header-modal [titulo]="getFolio()" descripcion="Detalles de orden de servicio" (cerrarModal)="cerrarPanel()"></app-header-modal>
+
+  <!-- SKELETON -->
+  @if (cargando()) {
+  <div class="flex-1 flex flex-col gap-5 p-5 overflow-y-auto animate-pulse">
+    <div class="flex flex-col gap-3 border-b border-zinc-100 pb-5">
+      <div class="h-3 bg-slate-200 rounded w-1/4 mb-1"></div>
+      @for(_ of [1,2,3,4,5,6,7]; track _) {
+        <div class="grid grid-cols-2 gap-4">
+          <div class="h-4 bg-slate-200 rounded w-3/4"></div>
+          <div class="h-4 bg-slate-200 rounded w-1/2"></div>
+        </div>
+      }
+    </div>
+    <div class="flex flex-col gap-3 border-b border-zinc-100 pb-5">
+      <div class="h-3 bg-slate-200 rounded w-1/5 mb-1"></div>
+      @for(_ of [1,2]; track _) {
+        <div class="grid grid-cols-2 gap-4">
+          <div class="h-4 bg-slate-200 rounded w-3/4"></div>
+          <div class="h-4 bg-slate-200 rounded w-1/2"></div>
+        </div>
+      }
+    </div>
+    <div class="flex flex-col gap-3 border-b border-zinc-100 pb-5">
+      <div class="h-3 bg-slate-200 rounded w-1/5 mb-1"></div>
+      <div class="h-48 bg-slate-200 rounded-xl w-full"></div>
+    </div>
+    <div class="flex flex-col gap-3 pb-5">
+      <div class="h-3 bg-slate-200 rounded w-1/4 mb-1"></div>
+      @for(_ of [1,2,3]; track _) { <div class="h-10 bg-slate-200 rounded w-full"></div> }
+    </div>
+  </div>
+  }
+
+  <!-- ERROR -->
+  @if (errorDeConexion()) {
+  <div class="flex-1 flex flex-col items-center justify-center gap-4 p-8">
+    <p class="text-lg font-medium text-red-500">Error de conexión</p>
+    <app-ui-boton variante="primario" texto="Reintentar" (click)="cargarDetalleOrden()"></app-ui-boton>
+  </div>
+  }
+
+  <!-- CONTENIDO -->
+  @if (monstrarDatos() && orden) {
+  <div class="flex-1 flex flex-col overflow-y-auto">
+    <div class="flex flex-col">
+
+      <!-- Info general -->
+      <section class="flex flex-col gap-3 border-b border-zinc-100 py-4">
+        <div class="grid grid-cols-2 items-center px-4">
+          <p class="text-sm text-slate-500 font-medium">Estado orden</p>
+          <span class="inline-flex w-fit px-2.5 py-1 rounded-md text-xs font-bold {{ estadoClase() }}">{{ estadoOrdenServicio() }}</span>
+        </div>
+        <div class="grid grid-cols-2 items-center px-4">
+          <p class="text-sm text-slate-500 font-medium">Estado factura</p>
+          <span class="inline-flex w-fit px-2.5 py-1 rounded-md text-xs font-bold {{ estadoFacturaClase() }}">{{ estadoFacturaTexto() }}</span>
+        </div>
+        <div class="grid grid-cols-2 items-center px-4">
+          <p class="text-sm text-slate-500 font-medium">Tipo de atención</p>
+          <span class="inline-flex w-fit px-2.5 py-1 rounded-md text-xs font-bold {{ tipoAtencionClase() }}">{{ tipoAtencion() }}</span>
+        </div>
+        <div class="grid grid-cols-2 items-center px-4">
+          <p class="text-sm text-slate-500 font-medium">Fecha creación</p>
+          <p class="text-sm text-slate-800 font-medium">{{ formatearFecha(orden.fechaCreacion) }}</p>
+        </div>
+        <div class="grid grid-cols-2 items-center px-4">
+          <p class="text-sm text-slate-500 font-medium">Fecha inicio</p>
+          <p class="text-sm text-slate-800 font-medium">{{ formatearFecha(orden.fechaInicio) }}</p>
+        </div>
+        <div class="grid grid-cols-2 items-center px-4">
+          <p class="text-sm text-slate-500 font-medium">Fecha finalización</p>
+          <p class="text-sm text-slate-800 font-medium">{{ formatearFecha(orden.fechaFinalizacion) }}</p>
+        </div>
+        <div class="grid grid-cols-2 items-center px-4">
+          <p class="text-sm text-slate-500 font-medium">Total horas</p>
+          <p class="text-sm text-slate-800 font-medium">{{ getTotalHoras() }}</p>
+        </div>
+      </section>
+
+      <!-- Agentes -->
+      <section class="flex flex-col gap-3 border-b border-zinc-100 py-4">
+        <span class="text-sm font-semibold text-slate-800 ml-4">Agentes</span>
+        <div class="grid grid-cols-2 items-center px-4">
+          <p class="text-sm text-slate-500 font-medium">Agente principal</p>
+          <p class="text-sm text-slate-800 font-medium">{{ agentePrincipalNombre() }}</p>
+        </div>
+        @if(agentesAuxiliaresNombres().length > 0) {
+          <div class="grid grid-cols-2 items-start px-4">
+            <p class="text-sm text-slate-500 font-medium pt-1">
+              Agente{{ agentesAuxiliaresNombres().length > 1 ? 's' : '' }} auxiliar{{ agentesAuxiliaresNombres().length > 1 ? 'es' : '' }}
+            </p>
+            <div class="flex items-center" style="padding-left: 2px;">
+              @for(aux of agentesAuxiliaresNombres() | slice:0:6; track aux; let i = $index) {
+                <div class="relative group"
+                  [style.margin-left]="i === 0 ? '0' : '-10px'"
+                  [style.z-index]="agentesAuxiliaresNombres().length - i">
+                  <div class="w-7 h-7 rounded-full border-2 border-white flex items-center justify-center text-white text-[10px] font-bold shadow-sm cursor-default transition-transform duration-150 group-hover:scale-110 group-hover:border-slate-200 {{ getColorAvatar(aux) }}">
+                    {{ getIniciales(aux) }}
+                  </div>
+                  <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none shadow-lg" style="z-index: 9999;">
+                    {{ aux }}
+                    <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                  </div>
+                </div>
+              }
+              @if(agentesAuxiliaresNombres().length > 6) {
+                <div class="relative group" style="margin-left: -10px; z-index: 1;">
+                  <div class="w-7 h-7 rounded-full border-2 border-white flex items-center justify-center bg-gray-400 text-white text-[10px] font-bold shadow-sm cursor-default">
+                    +{{ agentesAuxiliaresNombres().length - 6 }}
+                  </div>
+                  <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none shadow-lg" style="z-index: 9999;">
+                    {{ getNombresAuxiliaresTexto(agentesAuxiliaresNombres()) }}
+                    <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        } @else {
+          <div class="grid grid-cols-2 items-center px-4">
+            <p class="text-sm text-slate-500 font-medium">Agente auxiliar</p>
+            <p class="text-sm text-slate-400">Sin auxiliar</p>
+          </div>
+        }
+      </section>
+
+      <!-- Datos del cliente -->
+      <section class="flex flex-col gap-3 border-b border-zinc-100 py-4">
+        <span class="text-sm font-semibold text-slate-800 ml-4">Datos del cliente</span>
+        <div class="grid grid-cols-2 items-center px-4">
+          <p class="text-sm text-slate-500 font-medium">Nombre solicitante</p>
+          <p class="text-sm text-slate-800 font-medium">{{ orden.nombreSolicitante || 'Sin registro' }}</p>
+        </div>
+        <div class="grid grid-cols-2 items-center px-4">
+          <p class="text-sm text-slate-500 font-medium">Nombre destinatario</p>
+          <p class="text-sm text-slate-800 font-medium">{{ orden.nombreDestinatario || 'Sin registro' }}</p>
+        </div>
+        <div class="grid grid-cols-2 items-center px-4">
+          <p class="text-sm text-slate-500 font-medium">Contacto solicitante</p>
+          <p class="text-sm text-slate-800 font-medium break-words">{{ getContactoVisual(orden.contactoSolicitante) }}</p>
+        </div>
+        <div class="grid grid-cols-2 items-center px-4">
+          <p class="text-sm text-slate-500 font-medium">Contacto destinatario</p>
+          <p class="text-sm text-slate-800 font-medium break-words">{{ getContactoVisual(orden.contactoDestinatario) }}</p>
+        </div>
+        <div class="grid grid-cols-2 items-center px-4">
+          <p class="text-sm text-slate-500 font-medium">Credenciales escritas</p>
+          <p class="text-sm text-slate-800 font-medium break-words">{{ getCredencialesVisual(orden.credencialesEscritas) }}</p>
+        </div>
+      </section>
+
+      <!-- Mapa: solo si es presencial y tiene coordenadas -->
+      @if(!orden.esVirtual && orden.latitud && orden.longitud) {
+      <section class="flex flex-col gap-3 border-b border-zinc-100 py-4">
+        <span class="text-sm font-semibold text-slate-800 ml-4">Ubicación</span>
+        <div class="px-4">
+          <div class="relative rounded-xl overflow-hidden border border-zinc-200">
+            <iframe
+              [src]="mapaUrl()"
+              width="100%" height="220"
+              style="border:0;border-radius:12px;"
+              loading="lazy"
+              referrerpolicy="no-referrer-when-downgrade"
+              allowfullscreen>
+            </iframe>
+          </div>
+          @if(orden.direccionGoogleMaps) {
+            <div class="flex items-start gap-2 mt-2 px-1">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                class="text-slate-400 shrink-0 mt-0.5">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                <circle cx="12" cy="10" r="3"></circle>
+              </svg>
+              <p class="text-xs text-slate-500">{{ orden.direccionGoogleMaps }}</p>
+            </div>
+          }
+        </div>
+      </section>
+      }
+
+      <!-- Observaciones -->
+      <section class="flex flex-col gap-3 border-b border-zinc-100 py-4">
+        <span class="text-sm font-semibold text-slate-800 ml-4">Observaciones</span>
+        <div class="mx-4 p-3 bg-gray-50 rounded-lg border border-zinc-200">
+          @if(orden.observaciones) {
+            <p class="text-sm text-slate-700 leading-relaxed">{{ orden.observaciones }}</p>
+          } @else {
+            <p class="text-sm text-slate-400 italic">Sin observaciones</p>
+          }
+        </div>
+      </section>
+
+      <!-- Notas de soporte (editables) -->
+      <section class="flex flex-col gap-3 border-b border-zinc-100 py-4">
+        <div class="flex items-center justify-between px-4">
+          <span class="text-sm font-semibold tracking-wide text-slate-800">Notas de soporte</span>
+          @if (!editandoNotasSoporte() && !esOrdenFinalizada()) {
+            <button
+              class="flex items-center gap-1 px-2 py-1 text-xs text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+              (click)="abrirEdicionNotasSoporte()">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+              Editar
+            </button>
+          }
+        </div>
+
+        @if (!editandoNotasSoporte()) {
+          <div class="mx-4 p-3 bg-amber-50 rounded-lg border border-amber-200">
+            @if(orden.notasSoporte) {
+              <p class="text-sm text-amber-800 leading-relaxed">{{ orden.notasSoporte }}</p>
+            } @else {
+              <p class="text-sm text-amber-600 italic">Sin notas de soporte</p>
+            }
+          </div>
+        } @else {
+          <div class="flex flex-col gap-2 mx-4">
+            <textarea
+              [(ngModel)]="notasSoporteEdit"
+              rows="4"
+              placeholder="Escribe las notas de soporte..."
+              class="w-full p-3 bg-gray-50 border border-neutral-200 rounded-lg text-sm text-slate-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none resize-none leading-relaxed">
+            </textarea>
+            <div class="flex gap-2 justify-end">
+              <button
+                class="px-3 py-1.5 text-xs text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors"
+                (click)="cancelarEdicionNotasSoporte()">Cancelar</button>
+              <button
+                class="px-3 py-1.5 text-xs text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors disabled:opacity-50"
+                [disabled]="guardandoNotasSoporte()"
+                (click)="guardarNotasSoporte()">
+                {{ guardandoNotasSoporte() ? 'Guardando...' : 'Guardar' }}
+              </button>
+            </div>
+          </div>
+        }
+      </section>
+
+      <!-- ══ SECCIÓN ACCIONES (solo cuando está EN PROCESO) ══ -->
+      @if(estaEnProceso()) {
+
+        <!-- Cambiar estado factura -->
+        <section class="flex flex-col gap-3 border-b border-zinc-100 py-4">
+          <div class="flex justify-between items-center px-4">
+            <span class="text-sm font-semibold text-slate-800">Estado de factura</span>
+            <button class="text-xs text-blue-600 font-medium hover:underline cursor-pointer"
+              (click)="mostrarFormFactura.set(!mostrarFormFactura())">
+              {{ mostrarFormFactura() ? 'Cancelar' : 'Cambiar' }}
+            </button>
+          </div>
+          @if(mostrarFormFactura()) {
+          <div class="mx-4 flex flex-col gap-3 p-3 bg-gray-50 rounded-lg border border-zinc-200">
+            <select [(ngModel)]="nuevoEstadoFactura" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="PENDIENTE">Pendiente</option>
+              <option value="CONFACTURA">Con factura</option>
+              <option value="SIN_FACTURA">Sin factura</option>
+            </select>
+            <app-ui-boton variante="primario" texto="Guardar" [estaCargando]="procesandoFactura()" (click)="guardarEstadoFactura()"></app-ui-boton>
+          </div>
+          }
+        </section>
+
+        <!-- Entregables / Productos -->
+        <section class="flex flex-col gap-3 border-b border-zinc-100 py-4">
+          <div class="flex justify-between items-center px-4">
+            <span class="text-sm font-semibold text-slate-800">Entregables</span>
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold text-blue-800 bg-blue-100 px-2 py-1 rounded">{{ getCantidadEntregables() }}</span>
+              <button class="text-xs text-blue-600 font-medium hover:underline cursor-pointer"
+                (click)="mostrarFormEntregable.set(!mostrarFormEntregable()); limpiarFormEntregable()">
+                {{ mostrarFormEntregable() ? 'Cancelar' : '+ Agregar' }}
+              </button>
+            </div>
+          </div>
+
+          @if(mostrarFormEntregable()) {
+          <div class="mx-4 flex flex-col gap-3 p-3 bg-gray-50 rounded-lg border border-zinc-200">
+
+            <!-- Buscador estilo cotización -->
+            <div class="relative">
+              <input type="text"
+                [(ngModel)]="busquedaProducto"
+                (keydown.enter)="buscarProductos()"
+                placeholder="Buscar producto por código o nombre..."
+                class="w-full border border-gray-200 rounded-xl py-2.5 pl-9 pr-24 text-sm focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100"/>
+              <!-- Icono buscar -->
+              <div class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+              </div>
+              <!-- Botón buscar -->
+              <button (click)="buscarProductos()" [disabled]="buscandoProducto()"
+                class="absolute right-2 top-1/2 -translate-y-1/2 bg-blue-600 text-white rounded-lg px-3 py-1.5 text-xs font-semibold flex items-center gap-1 hover:bg-blue-700 transition-all disabled:bg-gray-400 cursor-pointer">
+                @if(buscandoProducto()) {
+                  <svg class="animate-spin h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                }
+                Buscar
+              </button>
+            </div>
+
+            <!-- Resultados dropdown -->
+            @if(resultadosProducto().length > 0) {
+            <div class="border border-zinc-200 rounded-xl bg-white max-h-48 overflow-y-auto shadow-lg">
+              @for(p of resultadosProducto(); track p.idProducto) {
+              <div class="p-3 border-b border-zinc-100 last:border-0 cursor-pointer hover:bg-blue-50 hover:pl-4 hover:border-l-4 hover:border-blue-600 transition-all"
+                (click)="seleccionarProducto(p)">
+                <p class="text-sm font-bold text-blue-600">{{ p.nombreProducto }}</p>
+                <p class="text-xs text-gray-500 flex justify-between">
+                  <span class="font-mono">{{ p.codigoProducto }}</span>
+                  <span>{{ formatearDinero(p.precio) }}</span>
+                </p>
+              </div>
+              }
+            </div>
+            }
+
+            <!-- Formulario tras selección -->
+            @if(productoSeleccionado()) {
+            <div class="flex flex-col gap-2 pt-2 border-t border-zinc-200">
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="text-xs font-semibold text-gray-600 mb-1 block">Cantidad</label>
+                  <input type="number" min="1" [(ngModel)]="entregableForm.cantidad"
+                    class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100"/>
+                </div>
+                <div>
+                  <label class="text-xs font-semibold text-gray-600 mb-1 block">Precio unitario</label>
+                  <input type="number" min="0" [(ngModel)]="entregableForm.precioUnitario"
+                    class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100"/>
+                </div>
+              </div>
+              <div>
+                <label class="text-xs font-semibold text-gray-600 mb-1 block">Observaciones</label>
+                <textarea [(ngModel)]="entregableForm.observaciones" rows="2" placeholder="Opcional..."
+                  class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100 resize-none"></textarea>
+              </div>
+              <app-ui-boton variante="primario" texto="Agregar entregable" [estaCargando]="procesandoAccion()" (click)="guardarEntregable()"></app-ui-boton>
+            </div>
+            }
+          </div>
+          }
+
+          <!-- Lista entregables -->
+          @if(entregablesDetalle().length > 0) {
+          <div class="px-4">
+            @for(item of entregablesDetalle(); track item.id) {
+            <div class="py-2.5 border-b border-zinc-100 last:border-0 flex justify-between items-start gap-2">
+              <div class="flex-1 min-w-0">
+                <p class="text-sm text-slate-800 font-medium truncate">{{ item.nombreProducto }}</p>
+                <p class="text-xs text-slate-500 mt-0.5">{{ item.codigoProducto }} · Cant: {{ item.cantidad }} · {{ formatearDinero(item.precioUnitario) }}</p>
+              </div>
+              <button class="text-xs text-red-400 hover:text-red-600 shrink-0 cursor-pointer" (click)="eliminarEntregable(item.id)">Eliminar</button>
+            </div>
+            }
+          </div>
+          } @else {
+            <p class="text-sm text-slate-500 px-4">No hay servicios registrados.</p>
+          }
+        </section>
+
+        <!-- Servicios -->
+        <section class="flex flex-col gap-3 border-b border-zinc-100 py-4">
+          <div class="flex justify-between items-center px-4">
+            <span class="text-sm font-semibold text-slate-800">Servicios</span>
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold text-blue-800 bg-blue-100 px-2 py-1 rounded">{{ getCantidadServicios() }}</span>
+              <button class="text-xs text-blue-600 font-medium hover:underline cursor-pointer"
+                (click)="mostrarFormServicio.set(!mostrarFormServicio()); limpiarFormServicio()">
+                {{ mostrarFormServicio() ? 'Cancelar' : '+ Agregar' }}
+              </button>
+            </div>
+          </div>
+
+          @if(mostrarFormServicio()) {
+          <div class="mx-4 flex flex-col gap-3 p-3 bg-gray-50 rounded-lg border border-zinc-200">
+
+            <div class="relative">
+              <input type="text"
+                [(ngModel)]="busquedaServicio"
+                (keydown.enter)="buscarServicios()"
+                placeholder="Buscar servicio por código o nombre..."
+                class="w-full border border-gray-200 rounded-xl py-2.5 pl-9 pr-24 text-sm focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100"/>
+              <div class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+              </div>
+              <button (click)="buscarServicios()" [disabled]="buscandoServicio()"
+                class="absolute right-2 top-1/2 -translate-y-1/2 bg-blue-600 text-white rounded-lg px-3 py-1.5 text-xs font-semibold flex items-center gap-1 hover:bg-blue-700 transition-all disabled:bg-gray-400 cursor-pointer">
+                @if(buscandoServicio()) {
+                  <svg class="animate-spin h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                }
+                Buscar
+              </button>
+            </div>
+
+            @if(resultadosServicio().length > 0) {
+            <div class="border border-zinc-200 rounded-xl bg-white max-h-48 overflow-y-auto shadow-lg">
+              @for(p of resultadosServicio(); track p.idProducto) {
+              <div class="p-3 border-b border-zinc-100 last:border-0 cursor-pointer hover:bg-blue-50 hover:pl-4 hover:border-l-4 hover:border-blue-600 transition-all"
+                (click)="seleccionarServicio(p)">
+                <p class="text-sm font-bold text-blue-600">{{ p.nombreProducto }}</p>
+                <p class="text-xs text-gray-500 flex justify-between">
+                  <span class="font-mono">{{ p.codigoProducto }}</span>
+                  <span>{{ formatearDinero(p.precio) }}</span>
+                </p>
+              </div>
+              }
+            </div>
+            }
+
+            @if(servicioSeleccionado()) {
+            <div class="flex flex-col gap-2 pt-2 border-t border-zinc-200">
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="text-xs font-semibold text-gray-600 mb-1 block">Cantidad</label>
+                  <input type="number" min="1" [(ngModel)]="servicioForm.cantidad"
+                    class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100"/>
+                </div>
+                <div>
+                  <label class="text-xs font-semibold text-gray-600 mb-1 block">Precio unitario</label>
+                  <input type="number" min="0" [(ngModel)]="servicioForm.precioUnitario"
+                    class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100"/>
+                </div>
+              </div>
+              <div>
+                <label class="text-xs font-semibold text-gray-600 mb-1 block">Problemas</label>
+                <textarea [(ngModel)]="servicioForm.observaciones" rows="2" placeholder="Opcional..."
+                  class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100 resize-none"></textarea>
+              </div>
+              <p class="text-xs text-indigo-600 font-medium">Se registrará como: Asesoría</p>
+              <app-ui-boton variante="primario" texto="Agregar servicio" [estaCargando]="procesandoAccion()" (click)="guardarServicio()"></app-ui-boton>
+            </div>
+            }
+          </div>
+          }
+
+          @if(serviciosDetalle().length > 0) {
+          <div class="px-4">
+            @for(detalle of serviciosDetalle(); track detalle.idMovimiento) {
+            <div class="flex justify-between items-center py-2.5 border-b border-zinc-100 last:border-0">
+              <p class="text-sm text-slate-700">{{ detalle.observacionesMovimiento || 'Sin descripción' }}</p>
+              <span class="text-xs text-slate-500 shrink-0 ml-2">#{{ detalle.numeroMovimiento || detalle.idMovimiento }}</span>
+            </div>
+            }
+          </div>
+          } @else {
+            <p class="text-sm text-slate-500 px-4">No hay servicios registrados.</p>
+          }
+        </section>
+
+      } @else {
+        <!-- Vista solo lectura -->
+        <section class="flex flex-col gap-3 border-b border-zinc-100 py-4">
+          <div class="flex justify-between items-center px-4">
+            <span class="text-sm font-semibold text-slate-800">servicios</span>
+            <span class="text-xs font-bold text-blue-800 bg-blue-100 px-2 py-1 rounded">{{ getCantidadEntregables() }}</span>
+          </div>
+          @if(entregablesDetalle().length > 0) {
+          <div class="px-4">
+            @for(item of entregablesDetalle(); track item.id) {
+            <div class="py-2.5 border-b border-zinc-100 last:border-0">
+              <p class="text-sm text-slate-800 font-medium">{{ item.nombreProducto }}</p>
+              <p class="text-xs text-slate-500 mt-0.5">{{ item.codigoProducto }} · Cant: {{ item.cantidad }} · {{ formatearDinero(item.precioUnitario) }}</p>
+            </div>
+            }
+          </div>
+          } @else {
+            <p class="text-sm text-slate-500 px-4">No hay entregables registrados.</p>
+          }
+        </section>
+
+        <section class="flex flex-col gap-3 border-b border-zinc-100 py-4">
+          <div class="flex justify-between items-center px-4">
+            <span class="text-sm font-semibold text-slate-800">Servicios</span>
+            <span class="text-xs font-bold text-blue-800 bg-blue-100 px-2 py-1 rounded">{{ getCantidadServicios() }}</span>
+          </div>
+          @if(serviciosDetalle().length > 0) {
+          <div class="px-4">
+            @for(detalle of serviciosDetalle(); track detalle.idMovimiento) {
+            <div class="flex justify-between items-center py-2.5 border-b border-zinc-100 last:border-0">
+              <p class="text-sm text-slate-700">{{ detalle.observacionesMovimiento || 'Sin descripción' }}</p>
+              <span class="text-xs text-slate-500 shrink-0 ml-2">#{{ detalle.numeroMovimiento || detalle.idMovimiento }}</span>
+            </div>
+            }
+          </div>
+          } @else {
+            <p class="text-sm text-slate-500 px-4">No hay servicios registrados.</p>
+          }
+        </section>
+      }
+
+      <!-- Total -->
+      <section class="flex flex-col gap-3 px-4 py-4">
+        <span class="text-sm font-semibold text-slate-800">Total financiero</span>
+        <div class="p-4 bg-gray-50 rounded-lg border border-zinc-200">
+          <div class="flex justify-between items-center">
+            <p class="text-base font-semibold text-slate-700">Total</p>
+            <p class="text-xl font-bold text-slate-900">{{ formatearDinero(orden?.totalConIva, 2) }}</p>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="flex justify-between items-center p-3.5 border-t border-neutral-200 bg-neutral-50 shrink-0">
+    <app-ui-boton variante="cerrar" texto="Cerrar" (click)="cerrarPanel()"></app-ui-boton>
+    <div class="flex gap-3">
+      @if(puedeEmpezar()) {
+        <app-ui-boton variante="primario" texto="Empezar orden" [mostrarIcono]="true" nombreIcono="play" [estaCargando]="procesandoAccion()" (click)="empezarOrden()"></app-ui-boton>
+      }
+      @if(puedeFinalizar()) {
+        <app-ui-boton variante="primario" texto="Finalizar" [mostrarIcono]="true" nombreIcono="check" [estaCargando]="procesandoAccion()" (click)="finalizarOrden()"></app-ui-boton>
+      }
+    </div>
+  </div>
+  }
+</div>

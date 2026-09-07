@@ -1,0 +1,269 @@
+<div class="flex flex-col gap-6 w-full mb-10">
+    <!-- Loading State -->
+    @if (mostrarEsqueleto()) {
+        <!-- Encabezado -->
+        <div class="flex flex-col gap-2 p-4 bg-white w-full rounded-sm border border-zinc-200">
+            <!-- Titulo -->
+            <div class="h-7.5 bg-zinc-200 rounded w-100"></div>
+            <!-- Parrafo -->
+            <div class="h-4 bg-zinc-200 rounded w-75"></div>
+        </div>
+
+        <!-- Skeleton Loader  -->
+        <div class="w-full h-[507px] grid grid-cols-8 gap-[16px]">
+            <!-- Grafica izquierda - Ocupa 5 columnas -->
+            <div class="col-span-5 h-full flex flex-col bg-white p-2.5 border rounded-2xl border-zinc-200 gap-4">
+                <!-- Tarjetas de estado de la grafica - Skeleton -->
+                <div class="flex gap-4 w-full h-auto">
+                    @for (item of [1, 2]; track item) {
+                    <div class="flex-1 bg-white border border-zinc-200 rounded-xl p-4 animate-pulse">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <!-- Header + eitqueta -->
+                                <div class="flex justify-between">
+                                    <div class="flex gap-1">
+                                        <!-- Icono -->
+                                        <div class="size-4 bg-zinc-200 rounded-xs mb-3"></div>
+                                        <!-- Título -->
+                                        <div class="h-4 bg-zinc-200 rounded w-20"></div>
+                                    </div>
+
+                                    <!-- Etiquetas -->
+                                    <div class="h-4 w-8 bg-zinc-200 rounded-sm mb-2"></div>
+                                </div>
+
+                                <!-- Valor -->
+                                <div class="h-9 bg-zinc-200 rounded w-24"></div>
+                            </div>
+                        </div>
+                    </div>
+                    }
+                </div>
+
+                <!-- Grafica - Skeleton -->
+                <div class="bg-white flex flex-col rounded-md border border-zinc-200 overflow-hidden flex-1">
+                    <!-- Header de la gráfica - Skeleton -->
+                    <div class="flex-shrink-0 flex justify-between items-center px-2.5 py-4 border-b border-zinc-200">
+                        <div class="space-y-2">
+                            <!-- Título -->
+                            <div class="h-5 bg-zinc-200 rounded w-36 animate-pulse"></div>
+                            <!-- Subtítulo -->
+                            <div class="h-4 bg-zinc-200 rounded w-48 animate-pulse"></div>
+                        </div>
+                    </div>
+
+                    <!-- Área de gráfica - Skeleton -->
+                    <div class="flex-1 w-full p-4">
+                        <div class="w-full h-full flex items-end justify-between gap-2 animate-pulse">
+                            <!-- Barras de gráfica simuladas -->
+                            @for (
+                            item of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+                            track item
+                            ) {
+                            <div class="flex-1 flex flex-col items-center gap-2 h-full justify-end">
+                                <div class="w-full bg-zinc-200 rounded-t-md" [style.height.%]="30 + ((item * 3) % 50)">
+                                </div>
+                                <div class="h-3 w-full bg-zinc-200 rounded"></div>
+                            </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tarjetas derecha - Ocupa 3 columnas - Skeleton -->
+            <div class="col-span-3 h-full bg-white p-2.5 border rounded-2xl border-zinc-200">
+                <div class="gap-5 w-full h-full flex flex-col">
+                    @for (item of [1, 2, 3]; track item) {
+                    <div class="flex-1 bg-white border border-zinc-200 rounded-xl p-4 animate-pulse">
+                        <div class="flex flex-col items-start gap-3">
+                            <!-- Icono + Titulo -->
+                            <div class="flex items-center justify-between gap-2">
+                                <!-- Icono -->
+                                <div class="size-4 bg-zinc-200 rounded-xs flex-shrink-0"></div>
+                                <!-- Título -->
+                                <div class="h-4 bg-zinc-200 rounded w-24"></div>
+                            </div>
+
+                            <div class="flex-1 space-y-2 w-full">
+                                <!-- Valor principal -->
+                                <div class="h-9 bg-zinc-200 rounded w-32"></div>
+
+                                <!-- Descripción -->
+                                <div class="space-y-1">
+                                    <div class="h-3 bg-zinc-200 rounded w-full"></div>
+                                    <div class="h-3 bg-zinc-200 rounded w-3/4"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+    @if (errorDeConexion()) {
+        <!-- Encabezado -->
+        <app-ui-header titulo="Bienvenido, {{ userName || 'Usuario' }} 👋"
+            descripcion="Resumen de cotizaciones del año {{ currentYear }}" [visualizarButton]="false">
+        </app-ui-header>
+        <!-- Contenido principal -->
+        <div class="w-full h-[507px] grid grid-cols-8 gap-4">
+            <!-- Grafica izquierda - Ocupa 5 columnas -->
+            <div class="col-span-5 bg-white flex flex-col p-3 border rounded-3xl border-zinc-200 gap-4 w-full h-full">
+                <div class="flex flex-col gap-6 justify-center items-center text-center w-full h-full">
+                    <!-- Icono -->
+                    <div class="flex items-center justify-center bg-red-50 rounded-full size-16">
+                        <app-ui-icono name="exclamation-triangle" size="size-8" color="text-red-600"></app-ui-icono>
+                    </div>
+                    <!-- Textos -->
+                    <div class="flex flex-col gap-2">
+                        <span class="text-xl font-semibold text-gray-900">Error al cargar los datos</span>
+                        <span class="text-base font-normal text-gray-500">No se pudieron cargar las cotizaciones. Por favor, intenta de nuevo.</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tarjetas derecha - Ocupa 3 columnas -->
+            <div class="col-span-3 h-full bg-white p-3 border rounded-3xl border-zinc-200">
+                <div class="gap-3 w-full h-full flex flex-col">
+                    @for (tarjeta of tarjetaGrafica; track tarjeta.id) {
+                    <app-ui-card [nameIcono]="tarjeta.nameIcono" [title]="tarjeta.titulo" [valor]="tarjeta.valor"
+                        [porcentaje]="tarjeta.porcentaje" [estadoEtiqueta]="tarjeta.estadoEtiqueta"
+                        [viewLabel]="tarjeta.viewLabel" [viewSimbolo]="tarjeta.viewSimbolo" [selected]="false"
+                        [descripcion]="tarjeta.descripcion" [viewDescripcion]="tarjeta.viewDescripcion" class="flex-1">
+                    </app-ui-card>
+                    }
+                </div>
+            </div>
+        </div>        
+    }
+
+    @if (monstrarDatos()) {
+        <!-- Encabezado -->
+        <app-ui-header titulo="Bienvenido, {{ userName || 'Usuario' }} 👋"
+            descripcion="Resumen de cotizaciones del año {{ currentYear }}" [visualizarButton]="false">
+        </app-ui-header>
+        <!-- Contenido principal -->
+        <div class="w-full h-[507px] grid grid-cols-8 gap-4">
+            <!-- Grafica izquierda - Ocupa 5 columnas -->
+            <div class="col-span-5 h-full flex flex-col bg-white p-3 border rounded-3xl border-zinc-200 gap-4">
+                <!-- Tarjetas de estado de la grafica -->
+                <div class="flex gap-4 w-full h-auto">
+                    @for (tarjeta of tarjetas; track tarjeta.id) {
+                    <app-ui-card [nameIcono]="tarjeta.nameIcono" [title]="tarjeta.titulo" [valor]="tarjeta.valor"
+                        [porcentaje]="tarjeta.porcentaje" [estadoEtiqueta]="tarjeta.estadoEtiqueta"
+                        [viewLabel]="tarjeta.viewLabel" [viewSimbolo]="tarjeta.viewSimbolo"
+                        [selected]="tarjeta.id === tarjetaSeleccionadaId" [viewDescripcion]="tarjeta.viewDescripcion"
+                        (seleccionar)="seleccionarTarjeta(tarjeta.id)" class="flex-1 cursor-pointer">
+                    </app-ui-card>
+                    }
+                </div>
+                <!-- Grafica -->
+                <div class="flex flex-col rounded-2xl border border-zinc-200 w-full h-full">
+                    <!-- Header de la gráfica -->
+                    <div class="flex-shrink-0 flex justify-between items-center p-2.5 border-b border-zinc-200">
+                        <div class="">
+                            <app-ui-tipografia variante="h4" [texto]="tituloSeleccionado"></app-ui-tipografia>
+                            <app-ui-tipografia variante="p"
+                                [texto]="'Evolución mensual ' + currentYear"></app-ui-tipografia>
+                        </div>
+                    </div>
+
+                    <!-- Área de gráfica -->
+                    <div class="flex-1 w-full p-2.5">
+                        @if (datosSeleccionados.length >= 0) {
+                        <app-ui-barra-grafica [datos]="datosSeleccionados"
+                            (barraClickeada)="actualizarValorTarjeta($event)"></app-ui-barra-grafica>
+                        } @else {
+                        <div class="flex items-center justify-center h-full text-zinc-400">
+                            <div class="text-center">
+                                <svg class="w-12 h-12 mx-auto mb-2 text-zinc-300" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                </svg>
+                                <p>No hay datos disponibles</p>
+                            </div>
+                        </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tarjetas derecha - Ocupa 3 columnas -->
+            <div class="col-span-3 h-full bg-white p-3 border rounded-3xl border-zinc-200">
+                <div class="gap-3 w-full h-full flex flex-col">
+                    @for (tarjeta of tarjetaGrafica; track tarjeta.id) {
+                    <app-ui-card [nameIcono]="tarjeta.nameIcono" [title]="tarjeta.titulo" [valor]="tarjeta.valor"
+                        [porcentaje]="tarjeta.porcentaje" [estadoEtiqueta]="tarjeta.estadoEtiqueta"
+                        [viewLabel]="tarjeta.viewLabel" [viewSimbolo]="tarjeta.viewSimbolo" [selected]="false"
+                        [descripcion]="tarjeta.descripcion" [viewDescripcion]="tarjeta.viewDescripcion" class="flex-1">
+                    </app-ui-card>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+
+    @if(sinDatos()){
+        <!-- Encabezado -->
+        <app-ui-header titulo="Bienvenido, {{ userName || 'Usuario' }} 👋"
+            descripcion="Resumen de cotizaciones del año {{ currentYear }}" [visualizarButton]="false">
+        </app-ui-header>
+        <!-- Contenido principal -->
+        <div class="w-full h-[500px] grid grid-cols-8 gap-4">
+            <!-- Grafica izquierda - Ocupa 5 columnas -->
+            <div class="col-span-5 h-full flex flex-col bg-white p-3 border rounded-3xl border-zinc-200 gap-4">
+                <!-- Tarjetas de estado de la grafica -->
+                <div class="flex gap-4 w-full h-auto">
+                    @for (tarjeta of tarjetas; track tarjeta.id) {
+                    <app-ui-card [nameIcono]="tarjeta.nameIcono" [title]="tarjeta.titulo" [valor]="tarjeta.valor"
+                        [porcentaje]="tarjeta.porcentaje" [estadoEtiqueta]="tarjeta.estadoEtiqueta"
+                        [viewLabel]="tarjeta.viewLabel" [viewSimbolo]="tarjeta.viewSimbolo"
+                        [selected]="tarjeta.id === tarjetaSeleccionadaId" [viewDescripcion]="tarjeta.viewDescripcion"
+                        (seleccionar)="seleccionarTarjeta(tarjeta.id)" class="flex-1 cursor-pointer">
+                    </app-ui-card>
+                    }
+                </div>
+                <!-- Grafica -->
+                <div class="flex flex-col rounded-2xl border border-zinc-200 w-full h-full">
+                    <!-- Header de la gráfica -->
+                    <div class="flex-shrink-0 flex flex-col p-2.5 border-b border-zinc-200">
+                        <app-ui-tipografia variante="h4" [texto]="tituloSeleccionado"></app-ui-tipografia>
+                        <app-ui-tipografia variante="p" [texto]="'Evolución mensual ' + currentYear"></app-ui-tipografia>
+                    </div>
+                    <!-- Área de gráfica -->
+                    <div class="flex flex-col gap-1.5 items-center justify-center p-2.5 h-full w-full">
+                        <!-- Icono -->
+                        <div class="flex items-center justify-center rounded-full size-12 bg-blue-50">
+                            <app-ui-icono name="chart-bar" size="size-6" color="text-blue-700"></app-ui-icono>
+                        </div>
+
+                        <!-- Textos -->
+                        <div class="flex flex-col gap-1">
+                            <span class="text-lg font-medium text-center leading-7 text-gray-900">Sin datos
+                                disponibles</span>
+                            <span class="text-sm font-normal text-center leading-5 text-gray-500">No hayagentes disponibles
+                                por el momento.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tarjetas derecha - Ocupa 3 columnas -->
+            <div
+                class="col-span-3 size-full flex flex-col justify-center items-center bg-white p-6 border rounded-3xl border-zinc-200 gap-2">
+                <!-- Icono -->
+                <div class="flex items-center justify-center rounded-full size-12 bg-blue-50">
+                    <app-ui-icono name="clipboard-document-list" size="size-6" color="text-blue-700"></app-ui-icono>
+                </div>
+                <!-- Textos -->
+                <div class="flex flex-col items-center justify-center">
+                    <span class="text-lg font-medium text-center leading-7 text-gray-900">Sin datos disponibles</span>
+                    <span class="text-sm font-normal text-center leading-5 text-gray-500">No hay valores para mostrar</span>
+                </div>
+            </div>
+        </div>
+    }
+</div>

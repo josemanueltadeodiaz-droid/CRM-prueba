@@ -1,0 +1,114 @@
+<!-- =====================================================================================
+    HEADER PRINCIPAL - header.component.html
+    =====================================================================================
+
+    ¿QUÉ CONTIENE ESTE HEADER?
+    Barra de navegación superior con notificaciones y menú de usuario.
+    Se muestra en la parte superior de todas las páginas del dashboard.
+
+    ELEMENTOS:
+    - Logo/branding
+    - Componente de notificaciones
+    - Información del usuario
+    - Menú desplegable de usuario
+    - Indicador de conexión SignalR
+
+======================================================================================== -->
+
+<header class="bg-white shadow-sm px-6 py-3">
+  <div class="flex items-center justify-between">
+    <!-- Logo y título -->
+    <div class="flex items-center space-x-2 md:space-x-4">
+      <!-- Hamburger Menu para móviles -->
+      <button 
+        (click)="layoutService.toggleMobileSidebar()" 
+        class="lg:hidden p-2 -ml-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 focus:outline-none"
+        aria-label="Abrir menú"
+      >
+        <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+        </svg>
+      </button>
+
+      <div class="flex items-baseline">
+        <app-ui-tipografia variante="caption" texto="Sistema de Gestión"></app-ui-tipografia>
+      </div>
+    </div>
+
+    <div class="flex gap-4 items-center">
+      <app-notificaciones></app-notificaciones>    
+      <!-- Panel derecho: Usuario -->
+      <div class="flex items-center space-x-4">
+        <!-- Separador -->
+        <div class="h-6 w-px bg-gray-300"></div>
+
+        <!-- Menú de usuario -->
+        <div class="relative">
+          <button (click)="toggleMenuUsuario()" class="flex  cursor-pointer items-center space-x-3 p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500">
+
+            <!-- Avatar -->
+            <div class="size-8">
+              <app-ui-avatar [user]="usuarioActual "></app-ui-avatar>
+            </div>
+
+            <!-- Información del usuario -->
+            <div class="hidden md:flex md:flex-col md:items-start leading-tight">
+              <app-ui-tipografia
+                variante="p-sm"
+                texto="{{getFullName(usuarioActual) || 'Usuario'}}"
+                color="text-gray-900"
+              ></app-ui-tipografia>
+              <app-ui-tipografia
+                variante="caption-md"
+                texto="{{getUserRole(usuarioActual) || 'Sin rol'}}"
+              ></app-ui-tipografia>
+            </div>
+
+            <!-- Icono de flecha -->
+            <app-ui-icono
+              name="chevron-down"
+              size="size-4"
+              class="transition-transform duration-200"
+              [class.rotate-180]="mostrarMenuUsuario"
+            ></app-ui-icono>
+          </button>
+
+          <!-- Dropdown del menú de usuario -->
+          @if (mostrarMenuUsuario) {
+            <div class="absolute right-0 mt-2 w-48 overflow-hidden bg-white rounded-lg shadow-lg border border-gray-200 z-50" clickOutside (clickOutside)="onClickOutsideUsuario()">
+              
+              <!-- Nombre y correo -->
+              <div class="p-3 border-b border-gray-200">
+                <app-ui-tipografia variante="caption-md" texto="{{usuarioActual?.email}}"></app-ui-tipografia>
+              </div>
+
+              <!-- Opciones -->
+              <div class="py-1">
+                <a routerLink="/modulesShared/perfil" 
+                  class="px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-150 flex gap-2 items-center">
+                  <app-ui-icono name="user" size="size-4"></app-ui-icono>
+                  <app-ui-tipografia variante="p-sm" texto="Perfil"></app-ui-tipografia>
+                </a>
+              </div>
+
+              <!-- Logout -->
+              <div class="border-t border-gray-200">
+                <button (click)="logout()" 
+                        class="w-full cursor-pointer text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors duration-150 flex gap-1 items-center">  
+                  <app-ui-icono
+                    name="arrow-right-start-on-rectangle"
+                    size="size-4"
+                    color="text-red-500"
+                    class="inline mr-2"
+                  ></app-ui-icono>   
+                  <app-ui-tipografia variante="p-sm" texto="Cerrar sesión"></app-ui-tipografia>                 
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+  </div>
+</header>

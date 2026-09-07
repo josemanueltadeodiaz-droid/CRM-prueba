@@ -1,0 +1,26 @@
+import { Component, Input, Output, EventEmitter, output } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { UitipografiaComponent } from '../../atoms/tipografia/tipografia.component';
+import { UiBotonComponent } from '../../atoms/boton/boton.component';
+
+
+
+@Component({
+    selector: 'app-ui-header',
+    standalone: true,
+    imports: [CommonModule,UitipografiaComponent,UiBotonComponent],
+    templateUrl: './header.component.html'
+})
+export class UiHeaderComponent {
+    @Input() titulo: string = ''
+    @Input() descripcion: string = ''
+    @Input() buttonLabel: string = ''
+    @Input() tipoSeccion: 'encabezadoPagina' | 'encabezadoTabs' = 'encabezadoPagina';
+    @Input() visualizarDescripcion: boolean = true;
+    @Input() visualizarButton: boolean = true;
+    @Output() buttonClick = new EventEmitter<void>();
+
+    onButtonClick(): void {
+        this.buttonClick.emit();
+    }
+}

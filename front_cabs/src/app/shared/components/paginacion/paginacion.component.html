@@ -1,0 +1,40 @@
+<div class="contenedor-paginacion" *ngIf="totalPaginas > 0">
+  <!-- Información de registros -->
+  <div class="info-registros" *ngIf="mostrarInfoRegistros">
+    {{ textoMostrandoRegistros }} {{ elementoInicio }}-{{ elementoFin }} {{ textoDeRegistros }} {{ totalElementos }} entradas
+  </div>
+
+  <!-- Controles de paginación -->
+  <div class="controles-paginacion" *ngIf="mostrarBotonesPagina">
+    <!-- Botón Anterior -->
+    <app-ui-boton
+      [texto]="textoAnterior"
+      [variante]="'terciario'"
+      [anchoCompleto]="false"
+      [estaDeshabilitado]="!habilitarBotonAnterior"
+      [clasesAdicionales]="'!py-2 !px-4'"
+      (alClickear)="paginaAnterior()">
+    </app-ui-boton>
+
+    <!-- Botones de páginas -->
+    <app-ui-boton
+      *ngFor="let pagina of paginasVisibles"
+      [texto]="pagina.toString()"
+      [variante]="pagina === paginaActual ? 'primario' : 'azul-4'"
+      [anchoCompleto]="false"
+      [estaDeshabilitado]="esPuntosSuspensivos(pagina)"
+      [clasesAdicionales]="'!py-2 !px-4 min-w-[2.5rem] ' + (esPuntosSuspensivos(pagina) ? '!cursor-default !hover:scale-100' : '')"
+      (alClickear)="irAPagina(pagina)">
+    </app-ui-boton>
+
+    <!-- Botón Siguiente -->
+    <app-ui-boton
+      [texto]="textoSiguiente"
+      [variante]="'terciario'"
+      [anchoCompleto]="false"
+      [estaDeshabilitado]="!habilitarBotonSiguiente"
+      [clasesAdicionales]="'!py-2 !px-4'"
+      (alClickear)="paginaSiguiente()">
+    </app-ui-boton>
+  </div>
+</div>

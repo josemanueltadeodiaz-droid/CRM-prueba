@@ -1,0 +1,245 @@
+<div class="flex flex-col h-full w-full overflow-hidden bg-white my-4 gap-6">
+
+  <!-- Header -->
+  <div class="flex-shrink-0">
+    <app-header-modal
+      [titulo]="tituloDialog"
+      descripcion="Completa el registro del vehículo"
+      (click)="onCerrar()"
+    >
+    </app-header-modal>
+  </div>
+
+  <!-- Contenido + Botones -->
+  <div class="flex-1 overflow-y-auto">
+    <form 
+      [formGroup]="vehiculoForm" 
+      (ngSubmit)="guardar()" 
+      class="flex flex-col gap-4 mx-4"
+      autocomplete="off"
+    >
+      
+      <!-- Estado de carga -->
+      @if (cargando()) {
+        <div class="absolute inset-0 bg-gray-900/75 flex flex-col items-center justify-center z-50 rounded-lg">
+          <div class="border-4 border-gray-200 border-t-blue-600 rounded-full w-12 h-12 animate-spin"></div>
+          <p class="mt-4 text-white font-medium">
+            {{ modo === 'editar' ? 'Actualizando' : 'Creando' }} vehículo...
+          </p>
+        </div>
+      }
+
+      <!-- Mensaje de error -->
+      @if (error() && !cargando()) {
+        <div class="flex items-center p-4 mb-4 rounded-lg bg-red-50 text-red-800 border border-red-200 animate-fade-in">
+          <svg class="w-5 h-5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+          </svg>
+          <span class="text-sm">{{ error() }}</span>
+        </div>
+      }
+
+      <!-- Mensaje de éxito -->
+      @if (exito() && !cargando()) {
+        <div class="flex items-center p-4 mb-4 rounded-lg bg-green-50 text-green-800 border border-green-200 animate-fade-in">
+          <svg class="w-5 h-5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+          </svg>
+          <span class="text-sm">{{ exito() }}</span>
+        </div>
+      }
+
+      <!-- Sección 1: Información Básica -->
+      <div class="flex flex-col gap-2">
+        <div class="flex flex-col gap-2">
+          <app-ui-tipografia
+            variante="caption-lg"
+            texto="Información Básica">
+          </app-ui-tipografia>
+          
+          <div class="flex flex-col gap-3.5">
+            <!-- Nombre del Vehículo -->
+            <app-ui-input-field
+              label="Nombre del Vehículo"
+              variant="text"
+              formControlName="nombreVehiculo"
+              placeholder="Ej: Toyota Corolla 2020"
+              [labelObligatorio]="true"
+              [textoError]="isFieldInvalid('nombreVehiculo') ? getFieldError('nombreVehiculo') : ''"
+              class="w-full"
+            ></app-ui-input-field>
+          </div>
+        </div>
+      </div>
+
+      <app-ui-divider></app-ui-divider>
+
+      <!-- Sección 2: Especificaciones Técnicas -->
+      <div class="flex flex-col gap-2">
+        <div class="flex flex-col gap-2">
+          <app-ui-tipografia
+            variante="caption-lg"
+            texto="Especificaciones Técnicas">
+          </app-ui-tipografia>
+          
+          <div class="flex flex-col gap-3.5">
+            <!-- Tipo de Vehículo y Transmisión (2 columnas) -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <!-- Tipo de Vehículo -->
+              <app-ui-input-field
+                label="Tipo de Vehículo"
+                variant="select"
+                formControlName="tipoVehiculo"
+                [labelObligatorio]="true"
+                [textoError]="isFieldInvalid('tipoVehiculo') ? getFieldError('tipoVehiculo') : ''"
+                [options]="[
+                  { value: '', label: 'Seleccione tipo' },
+                  { value: 'Sedán', label: 'Sedán' },
+                  { value: 'SUV', label: 'SUV' },
+                  { value: 'Pickup', label: 'Pickup' },
+                  { value: 'Hatchback', label: 'Hatchback' },
+                  { value: 'Van', label: 'Van' }
+                ]"
+                class="w-full"
+              ></app-ui-input-field>
+
+              <!-- Transmisión -->
+              <app-ui-input-field
+                label="Tipo de transmisión"
+                variant="select"
+                formControlName="Transmision"
+                [labelObligatorio]="true"
+                [textoError]="isFieldInvalid('Transmision') ? getFieldError('Transmision') : ''"
+                [options]="[
+                  { value: '', label: 'Seleccione tipo' },
+                  { value: 'Manual', label: 'Manual' },
+                  { value: 'Automatico', label: 'Automática' }
+                ]"
+                class="w-full"
+              ></app-ui-input-field>
+            </div>
+
+            <!-- Kilometraje y Placas (2 columnas) -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <app-ui-input-field
+                label="Kilometraje"
+                variant="number"
+                formControlName="kilometraje"
+                placeholder="Ej: 45000"
+                [labelObligatorio]="true"
+                [textoError]="isFieldInvalid('kilometraje') ? getFieldError('kilometraje') : ''"
+                class="w-full"
+              ></app-ui-input-field>
+
+              <!-- Input Placas -->
+              <app-ui-input-field
+                label="Placas"
+                variant="text"
+                formControlName="placas"
+                placeholder="Ej: ABC-123"
+                [labelObligatorio]="true"
+                [textoError]="isFieldInvalid('placas') ? getFieldError('placas') : ''"
+                class="w-full"
+              ></app-ui-input-field>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <app-ui-divider></app-ui-divider>
+
+      <!-- Sección 3: Propiedad y Estado -->
+      <div class="flex flex-col gap-2">
+        <div class="flex flex-col gap-2">
+          <app-ui-tipografia
+            variante="caption-lg"
+            texto="Propiedad y Estado">
+          </app-ui-tipografia>
+          
+          <div class="flex flex-col gap-3.5">
+            <!-- Radio Button ¿Es de la empresa? -->
+            <div class="w-full">
+              <app-ui-input-field
+                label="¿Es de la empresa?"
+                variant="radio"
+                formControlName="esDeEmpresa"
+                [radioOptions]="radioOptions"
+                [radioLayout]="'card'"
+                [showRadioIcons]="false"
+                [labelObligatorio]="true"
+                [textoError]="isFieldInvalid('esDeEmpresa') ? getFieldError('esDeEmpresa') : ''"
+                [disabled]="cargando()"
+                (radioChange)="onRadioChange($event)"
+                class="w-full"
+              ></app-ui-input-field>
+            </div>
+
+            <!-- Checkbox Activo -->
+            <div class="w-full">
+              <app-ui-input-field
+                label="Activo"
+                variant="checkbox"
+                formControlName="activo"
+                [disabled]="cargando()"
+                class="w-full"
+              ></app-ui-input-field>
+              <p class="text-xs text-gray-500 mt-1 ml-6">
+                Indica si el vehículo está en operación
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <app-ui-divider></app-ui-divider>
+
+      <!-- Sección 4: Observaciones -->
+      <div class="flex flex-col gap-2">
+        <div class="flex flex-col gap-2">
+          <app-ui-tipografia
+            variante="caption-lg"
+            texto="Observaciones">
+          </app-ui-tipografia>
+          
+          <div class="flex flex-col gap-3.5">
+            <!-- Observaciones -->
+            <app-ui-input-field
+              label="Observaciones (Opcional)"
+              variant="textarea"
+              formControlName="observaciones"
+              placeholder="Observaciones adicionales..."
+              [rows]="3"
+              [disabled]="cargando()"
+              class="w-full"
+            ></app-ui-input-field>
+          </div>
+        </div>
+      </div>
+
+      <app-ui-divider></app-ui-divider>
+      
+    </form>
+
+    <!-- Botones -->
+    <div class="flex justify-end gap-2 mx-4 mt-6 mb-6">
+      <app-ui-boton
+        [tipo]="'button'"
+        [variante]="'cancelar'"
+        [texto]="'Cancelar'"
+        (alClickear)="cerrar()"
+        [estaDeshabilitado]="cargando()"
+        [anchoCompleto]="false"
+      ></app-ui-boton>
+
+      <app-ui-boton
+        [tipo]="'submit'"
+        [variante]="'primario'"
+        [texto]="modo === 'editar' ? 'Actualizar Vehículo' : 'Crear Vehículo'"
+        (alClickear)="guardar()"
+        [estaCargando]="cargando()"
+        [estaDeshabilitado]="cargando() || vehiculoForm.invalid"
+        [anchoCompleto]="false"
+      ></app-ui-boton>
+    </div>
+  </div>
+</div>

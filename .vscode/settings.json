@@ -1,0 +1,7 @@
+{
+  "github.copilot.chat.instructionFiles": [
+    ".github/instructions/instructions.md"
+  ],
+  "snyk.advanced.autoSelectOrganization": true,
+  "chat.disableAIFeatures": false
+}

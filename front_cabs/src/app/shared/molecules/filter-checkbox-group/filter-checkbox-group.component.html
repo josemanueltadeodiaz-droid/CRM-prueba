@@ -1,0 +1,16 @@
+<div class="filter-checkbox-group">
+  <h4 *ngIf="titulo" class="group-title">{{ titulo }}</h4>
+  
+  <div class="checkboxes-container">
+    <ng-container *ngFor="let option of options">
+      <app-ui-input-field
+        variant="filter-checkbox"
+        [label]="option.etiqueta"
+        [checkboxDescription]="option.descripcion"
+        [value]="option.valor"
+        [checked]="isChecked(option.valor)"
+        (checkedChange)="onCheckboxChange(option, $event)">
+      </app-ui-input-field>
+    </ng-container>
+  </div>
+</div>

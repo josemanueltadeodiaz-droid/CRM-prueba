@@ -1,0 +1,255 @@
+<div class="space-y-6 flex flex-col p-1 gap-6">
+  <!-- Encabezado & Filtros -->
+  <div class="flex flex-col gap-4 justify-between">
+    <!-- Encabezado  -->
+    <app-ui-header
+      titulo="Resumen General"
+      descripcion="Visión global del rendimiento de cotizaciones."
+      tipoSeccion="encabezadoTabs"
+      [visualizarButton]="false">
+    </app-ui-header>
+
+    <!-- Filtros principales -->
+    <div class="flex justify-items-start gap-4 items-end h-auto">
+      <!-- Filtro de fecha: Periodo de Análisis -->
+      <div class="flex flex-col gap-0.5">
+        <app-ui-tipografia 
+          variante="p-sm"
+          texto="Periodo de Análisis">
+        </app-ui-tipografia>
+        <input 
+          type="month" 
+          class="p-2.5 mt-2 w-full bg-gray-50 border border-neutral-200 rounded-sm cursor-pointer"
+          [(ngModel)]="selectedMonth"
+          (change)="onMonthChange()">
+      </div>
+      
+      <!-- Botones de acción -->
+      <div class="flex gap-4 justify-center items-center">
+        <app-ui-boton
+          variante="cerrar"
+          texto="Limpiar"
+          (click)="limpiarFiltros()">
+        </app-ui-boton>
+        <app-ui-boton
+          variante="cerrar"
+          texto="Aplicar Filtros"
+          (click)="aplicarFiltros()">
+        </app-ui-boton>
+      </div>
+
+      <!-- Botón desplegable para descargas -->
+      <div 
+        class="flex relative justify-center items-center p-2.5 gap-4 border rounded-sm cursor-pointer group bg-white" 
+        [class]="isDialogOpen ? 'border-blue-500' : 'border-neutral-200'"
+        (click)="toggleDialog()">
+        
+        <!-- Icono y texto del botón -->
+        <div class="flex gap-2">
+          <app-ui-icono
+            name="arrow-down-tray"
+            color="text-slate-500"
+            size="size-4">
+          </app-ui-icono>
+          <app-ui-tipografia 
+            variante="p-sm"
+            texto="Descargar"
+            color="text-slate-500">
+          </app-ui-tipografia>
+        </div>
+
+        <!-- Icono de flecha (cambia según estado) -->
+        @if(isDialogOpen){
+          <app-ui-icono
+            name="chevron-up"
+            color="text-blue-500"
+            size="size-4">
+          </app-ui-icono>
+        } @else {
+          <app-ui-icono
+            name="chevron-down"
+            color="text-slate-500"
+            size="size-4">
+          </app-ui-icono>
+        }
+        
+        <!-- Diálogo desplegable para opciones de descarga -->
+        @if(isDialogOpen){
+          <div class="bg-white absolute right-0 top-full mt-1 py-3 flex flex-col shadow-xs rounded-md min-w-max z-50 border border-neutral-100">
+            <!-- Opción: Descargar PDF -->
+            <button class="px-4 py-2 hover:bg-gray-50 text-left whitespace-nowrap cursor-pointer" 
+                    (click)="$event.stopPropagation(); exportToPdf()">
+              <app-ui-tipografia
+                variante="caption-md"
+                texto="Descargar en formato PDF(.pdf)"
+                color="text-gray-700">
+              </app-ui-tipografia>
+            </button>
+            
+            <!-- Opción: Descargar Excel -->
+            <button class="px-4 py-2 hover:bg-gray-50 text-left whitespace-nowrap cursor-pointer" 
+                    (click)="$event.stopPropagation(); exportToExcel()">
+              <app-ui-tipografia
+                variante="caption-md"
+                texto="Descargar en formato EXCEL(.xlsx)"
+                color="text-gray-700">
+              </app-ui-tipografia>
+            </button>
+          </div>
+        }
+      </div>
+    </div>    
+  </div>
+
+  <!-- Error State -->
+  @if(error){
+    <div class="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-r shadow-sm flex items-center gap-3" role="alert">
+      <svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <div>
+        <strong class="font-bold">Error de carga</strong>
+        <p class="text-sm">{{ error }}</p>
+      </div>
+    </div>
+  }
+
+  <!-- Tarjetas y graficas -->
+  <div class="flex flex-col gap-6">
+    @if(tarjetasKpi?.length){
+      <!-- KPI Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
+        @for (tarjeta of tarjetasKpi; track tarjeta.id) {
+          <app-ui-card
+            [nameIcono]="tarjeta.nameIcono"
+            [title]="tarjeta.titulo"
+            [valor]="tarjeta.valor"
+            [porcentaje]="tarjeta.porcentaje ?? ''"
+            [estadoEtiqueta]="tarjeta.estadoEtiqueta"
+            [viewLabel]="tarjeta.viewLabel"
+            [viewSimbolo]="tarjeta.viewSimbolo"
+            [viewDescripcion]="tarjeta.viewDescripcion"
+            [descripcion]="tarjeta.descripcion"
+            class="cursor-default">
+          </app-ui-card>
+        }
+      </div>
+    }
+
+    @if(estadisticas){
+      <!-- Charts Grid - CON DATOS -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <!-- Tendencia Mensual -->
+        <div class="lg:col-span-2 rounded-2xl border border-zinc-200">
+          <div class="flex items-center justify-between">
+            <div class="p-2.5 border-b w-full border-zinc-200">
+              <app-ui-tipografia variante="h5" texto="Tendencia de Cotizaciones"></app-ui-tipografia>
+              <app-ui-tipografia variante="p" texto="Evolución mensual de volumen y monto"></app-ui-tipografia>
+            </div>
+          </div>
+          <div class="h-[400px] w-full p-2.5">
+            <canvas #monthlyTrendChart></canvas>
+          </div>
+        </div>
+
+        <!-- Distribución de Estados -->
+        <div class="rounded-2xl border border-zinc-200 flex flex-col">
+          <div class="p-2.5 border-b w-full border-zinc-200">
+            <app-ui-tipografia variante="h5" texto="Estado Actual"></app-ui-tipografia>
+            <app-ui-tipografia variante="p" texto="Distribución por estatus"></app-ui-tipografia>
+          </div>
+          <div class="flex-1 flex items-center justify-center relative min-h-[300px] p-2.5">
+            <canvas #statusChart></canvas>
+            <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+              <span class="text-3xl font-bold text-gray-800">{{ estadisticas.totalCotizaciones }}</span>
+              <span class="text-xs text-gray-500 uppercase font-semibold">Total</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Análisis de Montos -->
+        <div class="lg:col-span-3 rounded-2xl border border-zinc-200">
+          <div class="p-2.5 border-b w-full border-zinc-200">
+            <app-ui-tipografia variante="h5" texto="Análisis de Montos"></app-ui-tipografia>
+            <app-ui-tipografia variante="p" texto="Comparativa de valores extremos y promedio"></app-ui-tipografia>
+          </div>
+          <div class="h-[300px] w-full p-2.5">
+            <canvas #amountsChart></canvas>
+          </div>
+        </div>
+      </div>
+    }
+
+    @if (!estadisticas && !error) {    
+      <!-- Charts Grid - SIN DATOS (EMPTY STATES) -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <!-- Tendencia Mensual - Empty -->
+        <div class="lg:col-span-2 rounded-2xl border border-zinc-200">
+          <div class="flex items-center justify-between">
+            <div class="p-2.5 border-b w-full border-zinc-200">
+              <app-ui-tipografia variante="h5" texto="Tendencia de Cotizaciones"></app-ui-tipografia>
+              <app-ui-tipografia variante="p" texto="Evolución mensual de volumen y monto"></app-ui-tipografia>
+            </div>
+          </div>
+          <div class="h-[400px] w-full p-2.5 flex items-center justify-center">
+            <div class="flex flex-col gap-2 justify-center items-center">
+              <div class="flex items-center justify-center bg-blue-50 rounded-full size-12">
+                <app-ui-icono name="chart-bar" size="size-6" color="text-blue-700"></app-ui-icono>
+              </div>
+              <div class="flex flex-col gap-1">
+                <span class="text-lg font-medium text-center leading-7 text-gray-900">Sin datos disponibles</span>
+                <span class="text-sm font-normal text-center leading-5 text-gray-500">
+                  No hay información mensual para el período seleccionado
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Distribución de Estados - Empty -->
+        <div class="rounded-2xl border border-zinc-200 flex flex-col">
+          <div class="p-2.5 border-b w-full border-zinc-200">
+            <app-ui-tipografia variante="h5" texto="Estado Actual"></app-ui-tipografia>
+            <app-ui-tipografia variante="p" texto="Distribución por estatus"></app-ui-tipografia>
+          </div>
+          <div class="flex-1 min-h-[300px] p-2.5 flex items-center justify-center">
+            <div class="flex flex-col gap-2 justify-center items-center">
+              <div class="flex items-center justify-center bg-blue-50 rounded-full size-12">
+                <app-ui-icono name="chart-pie" size="size-6" color="text-blue-700"></app-ui-icono>
+              </div>
+              <div class="flex flex-col gap-1">
+                <span class="text-lg font-medium text-center leading-7 text-gray-900">Sin datos disponibles</span>
+                <span class="text-sm font-normal text-center leading-5 text-gray-500">
+                  No hay cotizaciones para mostrar
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Análisis de Montos - Empty -->
+        <div class="lg:col-span-3 rounded-2xl border border-zinc-200">
+          <div class="p-2.5 border-b w-full border-zinc-200">
+            <app-ui-tipografia variante="h5" texto="Análisis de Montos"></app-ui-tipografia>
+            <app-ui-tipografia variante="p" texto="Comparativa de valores extremos y promedio"></app-ui-tipografia>
+          </div>
+          <div class="h-[300px] w-full p-2.5 flex items-center justify-center">
+            <div class="flex flex-col gap-2 justify-center items-center">
+              <div class="flex items-center justify-center bg-blue-50 rounded-full size-12">
+                <app-ui-icono name="currency-dollar" size="size-6" color="text-blue-700"></app-ui-icono>
+              </div>
+              <div class="flex flex-col gap-1">
+                <span class="text-lg font-medium text-center leading-7 text-gray-900">Sin datos disponibles</span>
+                <span class="text-sm font-normal text-center leading-5 text-gray-500">
+                  No hay información de montos para mostrar
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+    
+    
+  </div>
+</div>
